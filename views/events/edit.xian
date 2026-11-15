@@ -1,0 +1,419 @@
+{{> head }}
+<body class="min-h-screen flex flex-col ss-page-bg">
+{{> navbar }}
+<div class="flex flex-1 overflow-hidden">
+{{> sidebar }}
+<main class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
+  {{#if error_msg}}<div class="alert-error mb-6 animate-fadeup"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>{{error_msg}}</div>{{/if}}
+
+  <div class="page-header animate-fadeup">
+    <div class="breadcrumb"><a href="/events/{{event.id}}">Back to {{event.name}}</a></div>
+    <h1>Edit Event</h1>
+    <p>Update all details for <span class="font-semibold text-blue-600">{{event.name}}</span>.</p>
+  </div>
+
+  <form id="delete-event-form" method="POST" action="/events/{{event.id}}/delete" onsubmit="return false" data-confirm-title="Delete Event" data-confirm-msg="DELETE this event? This cannot be undone." data-confirm-ok="Delete" data-confirm-type="danger">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+  </form>
+
+  <form method="POST" action="/events/{{event.id}}/update" class="animate-fadeup-1">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+    <div class="grid lg:grid-cols-3 gap-5">
+      <div class="lg:col-span-2 space-y-5">
+
+        <div class="card-flat">
+          <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+            <div class="w-8 h-8 grad-brand rounded-lg flex items-center justify-center shadow-sm"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+            <h2 class="font-bold text-slate-800">Basic Information</h2>
+          </div>
+          <div class="px-6 py-5 space-y-4">
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Event Name <span class="text-red-500">*</span></label><input type="text" name="name" value="{{event.name}}" required class="form-input-bare"/></div>
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Description</label><textarea name="description" rows="3" class="form-input-bare resize-none">{{event.description}}</textarea></div>
+            <div class="grid grid-cols-2 gap-4">
+              <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Event Type</label>
+                <select name="type" id="event-type-select" onchange="handleEventType(this)" class="form-input-bare bg-white">
+                  <option value="pageant"   {{#if (eq event.type 'pageant')}}selected{{/if}}>Pageant (Beauty / Royalty)</option>
+                  <option value="cultural"  {{#if (eq event.type 'cultural')}}selected{{/if}}>Street Dancing &amp; Cultural</option>
+                  <option value="float"     {{#if (eq event.type 'float')}}selected{{/if}}>Float Parade Competition</option>
+                  <option value="marching"  {{#if (eq event.type 'marching')}}selected{{/if}}>Drum &amp; Lyre / Marching Band</option>
+                  <option value="choral"    {{#if (eq event.type 'choral')}}selected{{/if}}>Choral &amp; Vocal Contest</option>
+                  <option value="dance"     {{#if (eq event.type 'dance')}}selected{{/if}}>Dance Crew / Modern Dance</option>
+                  <option value="booth"     {{#if (eq event.type 'booth')}}selected{{/if}}>Agro-Industrial &amp; Booth Display</option>
+                  <option value="sports"    {{#if (eq event.type 'sports')}}selected{{/if}}>Sports &amp; Palaro</option>
+                  <option value="academic"  {{#if (eq event.type 'academic')}}selected{{/if}}>Academic &amp; Quiz Bee</option>
+                  <option value="culinary"  {{#if (eq event.type 'culinary')}}selected{{/if}}>Culinary &amp; Cooking Contest</option>
+                  <option value="talent"    {{#if (eq event.type 'talent')}}selected{{/if}}>Talent Show</option>
+                  <option value="other"     {{#if (eq event.type 'other')}}selected{{/if}}>Other LGU Competition</option>
+                </select>
+              </div>
+              <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Status</label>
+                <select name="status" id="event-status" class="form-input-bare bg-white">
+                  <option value="upcoming"  {{#if (eq event.status 'upcoming')}}selected{{/if}}>Upcoming</option>
+                  <option value="ongoing"   {{#if (eq event.status 'ongoing')}}selected{{/if}}>Ongoing</option>
+                  <option value="completed" {{#if (eq event.status 'completed')}}selected{{/if}}>Completed</option>
+                  <option value="cancelled" {{#if (eq event.status 'cancelled')}}selected{{/if}}>Cancelled</option>
+                </select>
+                <p class="text-[11px] mt-1" style="color:var(--text-faint)">Set automatically from the schedule until you manually change it.</p>
+              </div>
+            </div>
+
+            <!-- Other LGU — auto-shows when type = other -->
+            <div id="other-lgu-wrap" class="{{#unless (eq event.type 'other')}}hidden{{/unless}} animate-fadeup">
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Specify Competition Type</label>
+              <input type="text" name="otherType" id="other-lgu-input"
+                value="{{event.otherType}}"
+                placeholder="e.g. Sayaw sa Bangko, Literary &amp; Musical Contest…"
+                class="form-input-bare"/>
+              <p class="text-[11px] mt-1.5 text-slate-400">Describe the type of LGU competition not listed above.</p>
+            </div>
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Organizer</label><input type="text" name="organizer" value="{{event.organizer}}" placeholder="e.g. Event Organizer / Committee" class="form-input-bare"/></div>
+
+            <!-- Event Cover Photo -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
+                Event Cover Photo {{#if event.coverPhoto}}<span class="text-emerald-500 font-bold ml-1">&#10003; Uploaded</span>{{/if}}
+              </label>
+              <div id="edit-cover-dropzone" onclick="document.getElementById('edit-cover-file').click()"
+                class="relative w-full rounded-xl border-2 border-dashed cursor-pointer overflow-hidden transition"
+                style="border-color:rgba(255,255,255,0.15);min-height:140px;background:rgba(255,255,255,0.03)">
+                <div id="edit-cover-placeholder" class="flex flex-col items-center justify-center py-8 gap-2 {{#if event.coverPhoto}}hidden{{/if}}">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  <p class="text-xs font-semibold" style="color:var(--text-muted)">Click to upload cover photo</p>
+                  <p class="text-[11px]" style="color:var(--text-faint)">JPG, PNG, WebP — max 3MB</p>
+                </div>
+                <img id="edit-cover-preview" src="{{event.coverPhoto}}" alt="Cover preview"
+                  class="w-full h-40 object-cover rounded-xl {{#unless event.coverPhoto}}hidden{{/unless}}"/>
+              </div>
+              <input type="file" id="edit-cover-file" accept="image/png,image/jpeg,image/jpg,image/webp" class="hidden"
+                onchange="handleCoverUpload(this,'edit-cover-preview','edit-cover-placeholder','edit-cover-b64')"/>
+              <input type="hidden" name="coverPhoto" id="edit-cover-b64" value="{{event.coverPhoto}}"/>
+              <button type="button" id="edit-cover-clear"
+                onclick="clearCover('edit-cover-preview','edit-cover-placeholder','edit-cover-b64','edit-cover-clear')"
+                class="mt-1.5 text-xs font-bold {{#unless event.coverPhoto}}hidden{{/unless}}" style="color:#f87171">&#10005; Remove photo</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-flat">
+          <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+            <div class="w-8 h-8 grad-green rounded-lg flex items-center justify-center shadow-sm"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <h2 class="font-bold text-slate-800">Schedule &amp; Venue</h2>
+          </div>
+          <div class="px-6 py-5 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Date</label><input type="date" name="date" id="event-date" value="{{event.date}}" onchange="autoSetStatus()" class="form-input-bare"/></div>
+              <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Start Time</label><input type="time" name="time" id="event-time" value="{{event.time}}" onchange="autoSetStatus()" class="form-input-bare"/></div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">End Time</label>
+                <input type="time" name="endTime" id="event-end-time" value="{{event.endTime}}" onchange="autoSetStatus()" class="form-input-bare"/>
+                <p class="text-[11px] mt-1" style="color:var(--text-faint)">When event ends — auto-marks Completed.</p>
+              </div>
+            </div>
+
+            <!-- Venue free-text -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Event Location / Venue</label>
+              <input type="text" name="venue" value="{{event.venue}}" placeholder="e.g. Municipal Gymnasium, School Auditorium, Hotel Function Hall" class="form-input-bare" maxlength="120"/>
+              <p class="text-[11px] mt-1.5" style="color:var(--text-faint)">Enter the exact venue or location of the event.</p>
+            </div>
+
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Max Contestants</label><input type="number" name="maxContestants" value="{{event.maxContestants}}" min="1" max="200" class="form-input-bare"/></div>
+          </div>
+        </div>
+
+        <div class="card-flat" id="prizes-rules-card" {{#unless isPrizeType}}style="display:none"{{/unless}}>
+          <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+            <div class="w-8 h-8 grad-gold rounded-lg flex items-center justify-center shadow-sm"><svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg></div>
+            <h2 class="font-bold text-slate-800">Prizes &amp; Rules</h2>
+          </div>
+          <div class="px-6 py-5 space-y-4">
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Prizes / Awards</label><textarea name="prizes" rows="3" class="form-input-bare resize-none">{{event.prizes}}</textarea></div>
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Rules &amp; Mechanics</label><textarea name="rules" rows="4" class="form-input-bare resize-none">{{event.rules}}</textarea></div>
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Additional Notes</label><textarea name="notes" rows="2" class="form-input-bare resize-none">{{event.notes}}</textarea></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="space-y-5">
+        <div class="card-flat">
+          <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+            <div class="w-8 h-8 grad-purple rounded-lg flex items-center justify-center shadow-sm"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="19" cy="17" r="2.5"/><circle cx="6.5" cy="17" r="2.5"/></svg></div>
+            <h2 class="font-bold text-slate-800">Event Theme</h2>
+          </div>
+          <div class="px-6 py-5">
+            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-3">Card Color</label>
+            <div class="grid grid-cols-3 gap-2">
+              <label class="cursor-pointer"><input type="radio" name="theme" value="blue" class="sr-only peer" {{#if (eq event.theme 'blue')}}checked{{/if}} {{#unless event.theme}}checked{{/unless}}/><div class="h-10 rounded-lg peer-checked:ring-2 peer-checked:ring-blue-500 peer-checked:ring-offset-2 transition" style="background:linear-gradient(135deg,#1e3a8a,#3b82f6)"></div><p class="text-center text-xs text-slate-500 mt-1">Blue</p></label>
+              <label class="cursor-pointer"><input type="radio" name="theme" value="purple" class="sr-only peer" {{#if (eq event.theme 'purple')}}checked{{/if}}/><div class="h-10 rounded-lg peer-checked:ring-2 peer-checked:ring-purple-500 peer-checked:ring-offset-2 transition" style="background:linear-gradient(135deg,#4c1d95,#8b5cf6)"></div><p class="text-center text-xs text-slate-500 mt-1">Purple</p></label>
+              <label class="cursor-pointer"><input type="radio" name="theme" value="green" class="sr-only peer" {{#if (eq event.theme 'green')}}checked{{/if}}/><div class="h-10 rounded-lg peer-checked:ring-2 peer-checked:ring-emerald-500 peer-checked:ring-offset-2 transition" style="background:linear-gradient(135deg,#064e3b,#10b981)"></div><p class="text-center text-xs text-slate-500 mt-1">Green</p></label>
+              <label class="cursor-pointer"><input type="radio" name="theme" value="gold" class="sr-only peer" {{#if (eq event.theme 'gold')}}checked{{/if}}/><div class="h-10 rounded-lg peer-checked:ring-2 peer-checked:ring-yellow-400 peer-checked:ring-offset-2 transition" style="background:linear-gradient(135deg,#92400e,#fbbf24)"></div><p class="text-center text-xs text-slate-500 mt-1">Gold</p></label>
+              <label class="cursor-pointer"><input type="radio" name="theme" value="rose" class="sr-only peer" {{#if (eq event.theme 'rose')}}checked{{/if}}/><div class="h-10 rounded-lg peer-checked:ring-2 peer-checked:ring-rose-500 peer-checked:ring-offset-2 transition" style="background:linear-gradient(135deg,#881337,#f43f5e)"></div><p class="text-center text-xs text-slate-500 mt-1">Rose</p></label>
+              <label class="cursor-pointer"><input type="radio" name="theme" value="slate" class="sr-only peer" {{#if (eq event.theme 'slate')}}checked{{/if}}/><div class="h-10 rounded-lg peer-checked:ring-2 peer-checked:ring-slate-500 peer-checked:ring-offset-2 transition" style="background:linear-gradient(135deg,#1e293b,#64748b)"></div><p class="text-center text-xs text-slate-500 mt-1">Dark</p></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Payment QR toggle — only visible for payment-applicable types when no QR yet -->
+        <div id="payment-qr-toggle-wrap" style="{{#if event.paymentQR}}display:none{{/if}}{{#unless isPaymentType}}display:none{{/unless}}">
+          <button type="button" id="show-payment-qr-btn"
+            onclick="document.getElementById('payment-qr-edit-card').style.display='';document.getElementById('payment-qr-toggle-wrap').style.display='none'"
+            class="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition"
+            style="background:rgba(16,185,129,0.08);color:#6ee7b7;border:2px dashed rgba(16,185,129,0.3)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>
+            Add Payment QR Code (optional)
+          </button>
+        </div>
+
+        <div class="card-flat" id="payment-qr-edit-card" style="border-color:#d1fae5;{{#if event.paymentQR}}{{else}}display:none{{/if}}">
+          <div class="px-6 py-4 border-b border-emerald-100 flex items-center gap-3">
+            <div class="w-8 h-8 grad-green rounded-lg flex items-center justify-center shadow-sm">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </div>
+            <h2 class="font-bold text-slate-800">Payment QR Code</h2>
+          </div>
+          <div class="px-6 py-5 space-y-4">
+            <p class="text-xs text-slate-500 leading-relaxed">Upload a GCash, Maya, bank, or any payment QR so participants can scan and pay directly from the event page.</p>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Payment Method</label>
+              <select name="paymentMethod" class="form-input-bare bg-white">
+                <option value="" {{#unless event.paymentMethod}}selected{{/unless}}>— None / Not Applicable —</option>
+                <option value="GCash"     {{#if (eq event.paymentMethod 'GCash')}}selected{{/if}}>GCash</option>
+                <option value="Maya"      {{#if (eq event.paymentMethod 'Maya')}}selected{{/if}}>Maya (PayMaya)</option>
+                <option value="BDO"       {{#if (eq event.paymentMethod 'BDO')}}selected{{/if}}>BDO</option>
+                <option value="BPI"       {{#if (eq event.paymentMethod 'BPI')}}selected{{/if}}>BPI</option>
+                <option value="UnionBank" {{#if (eq event.paymentMethod 'UnionBank')}}selected{{/if}}>UnionBank</option>
+                <option value="LandBank"  {{#if (eq event.paymentMethod 'LandBank')}}selected{{/if}}>LandBank</option>
+                <option value="Other"     {{#if (eq event.paymentMethod 'Other')}}selected{{/if}}>Other</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Account Name</label>
+              <input type="text" name="paymentAccountName" value="{{event.paymentAccountName}}" placeholder="e.g. Juan Dela Cruz" class="form-input-bare"/>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Account Number / GCash No.</label>
+              <input type="text" name="paymentAccountNumber" value="{{event.paymentAccountNumber}}" placeholder="e.g. 09XX-XXX-XXXX" class="form-input-bare"/>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
+                QR Image {{#if event.paymentQR}}<span class="text-emerald-600 font-bold ml-1">&#10003; Uploaded</span>{{/if}}
+              </label>
+
+              {{#if event.paymentQR}}
+              <!-- Existing QR preview -->
+              <div id="edit-qr-existing" class="text-center space-y-2 mb-3">
+                <img src="{{event.paymentQR}}" alt="Current Payment QR" class="mx-auto rounded-xl border border-slate-200 shadow-sm" style="max-height:180px;max-width:180px;object-fit:contain"/>
+                <p class="text-[11px] text-slate-400">Current QR — upload a new one to replace it</p>
+              </div>
+              {{/if}}
+
+              <div id="edit-qr-dropzone" {{#if event.paymentQR}}style="display:none"{{/if}}
+                onclick="document.getElementById('edit-qr-file').click()"
+                class="flex flex-col items-center justify-center w-full py-6 rounded-xl border-2 border-dashed border-emerald-200 bg-emerald-50 cursor-pointer hover:bg-emerald-100 transition">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.5" class="mb-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <p class="text-xs text-emerald-700 font-semibold">Click to upload QR image</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">PNG, JPG up to 2MB</p>
+              </div>
+              <input type="file" id="edit-qr-file" accept="image/png,image/jpeg,image/jpg,image/webp" class="hidden" onchange="handleEditQRUpload(this)"/>
+              <input type="hidden" name="paymentQR" id="edit-qr-b64" value="{{event.paymentQR}}"/>
+
+              <!-- New upload preview -->
+              <div id="edit-qr-new-preview" class="hidden text-center space-y-2 mt-2">
+                <img id="edit-qr-img" src="" alt="New Payment QR" class="mx-auto rounded-xl border border-slate-200 shadow-sm" style="max-height:180px;max-width:180px;object-fit:contain"/>
+                <button type="button" onclick="clearEditQR()" class="btn-sm btn-sm-red text-xs">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Remove New QR
+                </button>
+              </div>
+
+              {{#if event.paymentQR}}
+              <div class="mt-2 flex gap-2">
+                <button type="button" onclick="replaceEditQR()" class="btn-sm btn-sm-blue text-xs flex-1 justify-center">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Replace QR
+                </button>
+                <button type="button" onclick="removeEditQR()" class="btn-sm btn-sm-red text-xs flex-1 justify-center">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                  Remove QR
+                </button>
+              </div>
+              {{/if}}
+            </div>
+          </div>
+        </div>
+
+        <div class="card-flat" style="border-color:#fecaca">
+          <div class="px-6 py-4 border-b border-red-100 flex items-center gap-3">
+            <div class="w-8 h-8 grad-rose rounded-lg flex items-center justify-center shadow-sm"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+            <h2 class="font-bold text-slate-800">Danger Zone</h2>
+          </div>
+          <div class="px-6 py-5">
+            <p class="text-xs text-slate-500 leading-relaxed mb-3">Deleting this event will permanently remove all contestants, criteria, and scores.</p>
+            <button type="submit" form="delete-event-form" class="btn-danger w-full justify-center py-2.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 0-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>Delete This Event</button>
+          </div>
+        </div>
+
+        <div class="card-flat">
+          <div class="px-6 py-5 space-y-2">
+            <button type="submit" class="btn-primary w-full py-3 text-sm justify-center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Save All Changes</button>
+            <a href="/events/{{event.id}}" class="btn-secondary w-full py-2.5 text-sm justify-center">Cancel</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</main>
+</div>
+<script>
+/* -- Auto-set status from date + time + endTime -- */
+function autoSetStatus() {
+  const statusSel = document.getElementById('event-status');
+  const dateEl    = document.getElementById('event-date');
+  const timeEl    = document.getElementById('event-time');
+  const endEl     = document.getElementById('event-end-time');
+  if (!statusSel || !dateEl || !dateEl.value) return;
+  if (statusSel.value === 'cancelled') return;
+
+  const now      = new Date();
+  const startStr = dateEl.value + 'T' + (timeEl?.value || '00:00');
+  const startDt  = new Date(startStr);
+  const endDt    = (endEl?.value) ? new Date(dateEl.value + 'T' + endEl.value) : null;
+
+  if (endDt && now >= endDt)  statusSel.value = 'completed';
+  else if (now >= startDt)    statusSel.value = 'ongoing';
+  else                        statusSel.value = 'upcoming';
+}
+
+/* -- Venue dropdown -- */
+const PRESET_VENUES = [
+  'Brgy. Agsalin','Brgy. Agos','Brgy. Alma Villa','Brgy. Andres Bonifacio',
+  'Brgy. Balete','Brgy. Banus','Brgy. Banutan','Brgy. Buong Lupa',
+  'Brgy. Bulaklakan','Brgy. Gaudencio Antonino','Brgy. Guimbonan','Brgy. Kawit',
+  'Brgy. Lucio Laurel','Brgy. Macario Adriatico','Brgy. Malamig','Brgy. Malayong',
+  'Brgy. Maligaya (Pob.)','Brgy. Malubay','Brgy. Manguyang','Brgy. Maragooc',
+  'Brgy. Mirayan','Brgy. Narra','Brgy. Papandungin','Brgy. San Antonio',
+  'Brgy. Santa Maria','Brgy. Santa Theresa','Brgy. Tambong',
+];
+
+
+/* -- Event type visibility -- */
+const PRIZE_TYPES   = ['pageant','talent','choral','dance','culinary','academic'];
+const PAYMENT_TYPES = ['talent','cultural','choral','dance','culinary','booth','sports','academic','other'];
+
+function handleEventType(sel) {
+  const type = sel.value;
+
+  // Other LGU
+  const otherWrap = document.getElementById('other-lgu-wrap');
+  if (otherWrap) otherWrap.classList.toggle('hidden', type !== 'other');
+
+  // Prizes & Rules
+  const prizesCard = document.getElementById('prizes-rules-card');
+  if (prizesCard) prizesCard.classList.toggle('hidden', !PRIZE_TYPES.includes(type));
+
+  // Payment QR card (right column) — only show toggle, not the card itself
+  const paymentCard   = document.getElementById('payment-qr-edit-card');
+  const paymentToggle = document.getElementById('payment-qr-toggle-wrap');
+  const hasQR = !!(paymentCard && paymentCard.querySelector('#edit-qr-b64') && document.getElementById('edit-qr-b64')?.value);
+  if (paymentToggle) paymentToggle.style.display = (!PAYMENT_TYPES.includes(type) || hasQR) ? 'none' : '';
+  // Only auto-hide the card if it has no QR — never forcibly hide it if user already opened it
+  if (paymentCard && !hasQR) paymentCard.style.display = PAYMENT_TYPES.includes(type) ? 'none' : 'none';
+}
+
+/* -- Init on load -- */
+document.addEventListener('DOMContentLoaded', () => {
+  const typeSel  = document.getElementById('event-type-select');
+  const venueSel = document.getElementById('venue-select');
+  const venueInput = document.getElementById('venue-custom-input');
+
+  // Set venue select — if saved venue matches a preset, select it; else show custom
+  if (venueSel && venueInput) {
+    const saved = venueInput.value;
+    if (saved && PRESET_VENUES.includes(saved)) {
+      venueSel.value = saved;
+      venueSel.setAttribute('name', 'venue');
+      venueInput.removeAttribute('name');
+      document.getElementById('venue-custom-wrap').style.display = 'none';
+    } else if (saved) {
+      // Custom venue — show text input, hide select's name
+      venueSel.value = '__custom__';
+      venueSel.removeAttribute('name');
+      venueInput.setAttribute('name', 'venue');
+    } else {
+      document.getElementById('venue-custom-wrap').style.display = 'none';
+    }
+  }
+
+  if (typeSel) handleEventType(typeSel);
+});
+
+/* -- Cover Photo -- */
+function handleCoverUpload(input, previewId, placeholderId, b64Id) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 3 * 1024 * 1024) { alert('Image too large. Max 3MB.'); input.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById(b64Id).value = e.target.result;
+    const preview = document.getElementById(previewId);
+    preview.src = e.target.result;
+    preview.classList.remove('hidden');
+    document.getElementById(placeholderId).classList.add('hidden');
+    const clearBtn = document.getElementById(b64Id.replace('-b64','-clear'));
+    if (clearBtn) clearBtn.classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+function clearCover(previewId, placeholderId, b64Id, clearBtnId) {
+  document.getElementById(b64Id).value = '';
+  const preview = document.getElementById(previewId);
+  preview.src = '';
+  preview.classList.add('hidden');
+  document.getElementById(placeholderId).classList.remove('hidden');
+  document.getElementById(clearBtnId).classList.add('hidden');
+}
+
+function handleEditQRUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { alert('Image too large. Max 2MB.'); input.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('edit-qr-b64').value = e.target.result;
+    document.getElementById('edit-qr-img').src = e.target.result;
+    document.getElementById('edit-qr-new-preview').classList.remove('hidden');
+    document.getElementById('edit-qr-dropzone').style.display = 'none';
+    const ex = document.getElementById('edit-qr-existing');
+    if (ex) ex.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+function clearEditQR() {
+  document.getElementById('edit-qr-b64').value = '';
+  document.getElementById('edit-qr-img').src = '';
+  document.getElementById('edit-qr-new-preview').classList.add('hidden');
+  document.getElementById('edit-qr-dropzone').style.display = '';
+  document.getElementById('edit-qr-file').value = '';
+}
+function replaceEditQR() {
+  document.getElementById('edit-qr-file').click();
+}
+async function removeEditQR() {
+  const ok = await window.ssConfirm({ title: 'Remove QR Code', message: 'Remove the payment QR from this event?', ok: 'Remove', cancel: 'Cancel', type: 'warning' });
+  if (!ok) return;
+  document.getElementById('edit-qr-b64').value = '';
+  const ex = document.getElementById('edit-qr-existing');
+  if (ex) ex.style.display = 'none';
+  document.getElementById('edit-qr-dropzone').style.display = '';
+  document.getElementById('edit-qr-new-preview').classList.add('hidden');
+}
+</script>
+
+</html>

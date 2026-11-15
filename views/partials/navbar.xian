@@ -1,0 +1,517 @@
+﻿<nav class="h-14 border-b flex items-center px-3 sm:px-5 gap-2.5 sticky top-0 left-0 right-0 z-30"
+  style="background:var(--bg-navbar);border-bottom-color:var(--border);box-shadow:0 1px 0 var(--border-subtle),0 4px 24px rgba(0,0,0,0.2)">
+
+  <!-- Mobile Hamburger -->
+  <button type="button" onclick="toggleMobileSidebar()" class="md:hidden p-2 text-slate-300 hover:text-white focus:outline-none rounded-xl hover:bg-white/10 transition flex-shrink-0" aria-label="Toggle Navigation Menu">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+
+  <!-- Brand -->
+  <a href="/dashboard" class="flex items-center gap-2 flex-shrink-0">
+    <img src="/scoresync-logo.png?v=8" alt="ScoreSync" class="w-8 h-8 object-cover rounded-full" style="border:1.5px solid rgba(255,255,255,0.15)"/>
+    <span class="font-black text-white text-sm tracking-tight hidden sm:block">ScoreSync</span>
+  </a>
+
+  <!-- Panel Label — center of navbar -->
+  <div class="flex-1"></div>
+
+  <!-- Right: Notifications + Theme toggle + Profile Pill -->
+  <div class="flex items-center gap-2 flex-shrink-0" style="min-width:0">
+
+    <!-- Notification Bell (all logged-in users) -->
+    <div class="relative" id="notif-wrapper">
+      <button type="button" id="notif-btn" onclick="toggleNotifPanel()"
+        style="width:36px;height:36px;min-height:unset;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.15);color:#e2e8f0;cursor:pointer;flex-shrink:0;transition:all 120ms ease;position:relative"
+        title="Notifications">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span id="notif-badge" style="display:none;position:absolute;top:-2px;right:-2px;min-width:16px;height:16px;border-radius:999px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;padding:0 3px;align-items:center;justify-content:center;border:2px solid var(--bg-navbar);transition:transform 0.3s cubic-bezier(0.34,1.6,0.64,1)"></span>
+      </button>
+      <div id="notif-panel" style="display:none;position:fixed;top:60px;right:8px;width:340px;border-radius:20px;z-index:9999;border:1px solid rgba(255,255,255,0.12);box-shadow:0 24px 60px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.06);overflow:hidden;background:rgba(10,15,30,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)">
+        <!-- Gradient top border highlight -->
+        <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);margin:0 20px"></div>
+        <!-- Header: Row 1 — title + badge pill + clear all -->
+        <div style="padding:12px 16px 10px;border-bottom:1px solid rgba(255,255,255,0.07)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:0.9rem;font-weight:900;color:#f1f5f9">Notifications</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button type="button" id="notif-clear-btn" onclick="clearAllNotifs()" style="display:none;font-size:0.62rem;color:#94a3b8;background:none;border:none;cursor:pointer;padding:0"
+                onmouseover="this.style.color='#e2e8f0'" onmouseout="this.style.color='#94a3b8'">Clear all</button>
+              <span id="notif-count-label" style="font-size:0.62rem;font-weight:800;padding:2px 8px;border-radius:999px;color:#fff;background:#10b981"></span>
+            </div>
+          </div>
+          <!-- Header: Row 2 — volume row -->
+          <div style="display:flex;align-items:center;gap:6px;height:28px">
+            <button type="button" id="notif-mute-btn" onclick="toggleNotifMute()"
+              title="Toggle notification sound"
+              style="font-size:0.9rem;background:none;border:none;cursor:pointer;color:#64748b;padding:0;line-height:1;flex-shrink:0">🔔</button>
+            <input type="range" id="notif-volume" min="0" max="100" value="70" title="Notification volume" oninput="setNotifVolume(this.value)" style="width:80px;accent-color:#6366f1;cursor:pointer;flex-shrink:0">
+            <span id="notif-vol-pct" style="font-size:0.65rem;color:#64748b;flex-shrink:0">70%</span>
+          </div>
+        </div>
+        <!-- Filter tabs -->
+        <div id="notif-filter-tabs" style="display:flex;align-items:center;gap:0;padding:0 16px;border-bottom:1px solid rgba(255,255,255,0.07)">
+          <button type="button" class="notif-filter-tab" data-filter="all" onclick="setNotifFilter('all')"
+            style="font-size:0.68rem;padding:4px 8px;background:none;border:none;border-bottom:2px solid #6366f1;color:#818cf8;font-weight:700;cursor:pointer;transition:all 150ms ease">All</button>
+          <button type="button" class="notif-filter-tab" data-filter="critical" onclick="setNotifFilter('critical')"
+            style="font-size:0.68rem;padding:4px 8px;background:none;border:none;border-bottom:2px solid transparent;color:#64748b;font-weight:400;cursor:pointer;transition:all 150ms ease">Critical</button>
+          <button type="button" class="notif-filter-tab" data-filter="info" onclick="setNotifFilter('info')"
+            style="font-size:0.68rem;padding:4px 8px;background:none;border:none;border-bottom:2px solid transparent;color:#64748b;font-weight:400;cursor:pointer;transition:all 150ms ease">Info</button>
+        </div>
+        <div id="notif-list" style="max-height:min(340px,60vh);overflow-y:auto;padding:6px 8px">
+          <div id="notif-loading" style="padding:24px 16px;text-align:center;color:#64748b;font-size:0.78rem">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;animation:spin 1s linear infinite;vertical-align:-4px"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>
+            Loading...
+          </div>
+        </div>
+        <!-- Footer -->
+        <div style="padding:8px 12px;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between">
+          <a href="/events" style="font-size:0.73rem;font-weight:700;color:#818cf8;text-decoration:none"
+            onmouseover="this.style.color='#a5b4fc';document.getElementById('notif-footer-arrow').style.transform='translateX(3px)'"
+            onmouseout="this.style.color='#818cf8';document.getElementById('notif-footer-arrow').style.transform='translateX(0)'">
+            <span>View all events</span><span id="notif-footer-arrow" style="display:inline-block;margin-left:4px;transition:transform 0.18s ease">→</span>
+          </a>
+          <span id="notif-timestamp" style="font-size:0.6rem;color:#475569"></span>
+        </div>
+      </div>
+    </div>
+
+    <a id="navbar-profile-pill" href="/settings" class="flex items-center gap-2 pl-1 py-1 rounded-full border transition group"
+      style="background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.12);padding-right:12px;min-width:0;max-width:160px;flex-wrap:wrap">
+      <div class="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 shadow" style="border:1.5px solid rgba(255,255,255,0.2)">
+        {{#if userAvatar}}
+        <img src="{{userAvatar}}" alt="{{userName}}" class="navbar-avatar-img w-full h-full object-cover" loading="lazy"/>
+        {{else}}
+        <div class="w-full h-full grad-brand flex items-center justify-center text-white text-xs font-black">{{ userInitial }}</div>
+        {{/if}}
+      </div>
+      <span id="navbar-username-label" class="text-xs font-bold text-slate-300" style="display:none;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ userName }}</span>
+    </a>
+  </div>
+
+</nav>
+
+<!-- ── Global Page Loading Indicator (must be inside body) ── -->
+<div id="page-loader" aria-hidden="true" style="position:fixed;top:0;left:0;right:0;height:3px;z-index:9999;pointer-events:none;display:none;background:transparent"><div id="page-loader-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#4f46e5,#7c3aed,#06b6d4);background-size:200% 100%;border-radius:0 3px 3px 0;transition:width 0.2s ease"></div></div>
+<div id="page-loader-spinner" aria-hidden="true" aria-live="polite" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(7,11,24,0.75);backdrop-filter:blur(6px);flex-direction:column;align-items:center;justify-content:center;gap:16px">
+  <div style="width:52px;height:52px;border-radius:50%;border:3px solid rgba(99,102,241,0.2);border-top-color:#6366f1;animation:spin 0.7s linear infinite"></div>
+  <span style="font-size:12px;font-weight:700;color:#a5b4fc;letter-spacing:0.12em;text-transform:uppercase">Loading…</span>
+</div>
+
+<script>
+(function() {
+  // Inject @keyframes for panel slide-in + check animations
+  (function injectNotifStyles() {
+    var styleId = 'notif-panel-keyframes';
+    if (document.getElementById(styleId)) return;
+    var s = document.createElement('style');
+    s.id = styleId;
+    s.textContent = [
+      '@keyframes notifSlideIn{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}',
+      '@keyframes checkCircle{from{stroke-dashoffset:125.6}to{stroke-dashoffset:0}}',
+      '@keyframes checkMark{from{stroke-dashoffset:30}to{stroke-dashoffset:0}}'
+    ].join('');
+    document.head.appendChild(s);
+  })();
+
+  // ── Sound System ─────────────────────────────────────────────────────────
+  var _userHasInteracted = false;
+  var _notifSoundMuted = (localStorage.getItem('ss-notif-sound') === 'off');
+  var _notifVolume = parseFloat(localStorage.getItem('ss-notif-vol') || '0.7');
+
+  function _markInteraction() { _userHasInteracted = true; }
+  document.addEventListener('click', _markInteraction, { once: true, passive: true });
+  document.addEventListener('keydown', _markInteraction, { once: true, passive: true });
+  document.addEventListener('touchstart', _markInteraction, { once: true, passive: true });
+
+  function playNotifChime() {
+    if (!_userHasInteracted || _notifSoundMuted) return;
+    try {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      function tone(freq, startTime, duration) {
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(0.3 * _notifVolume, startTime);
+        gain.gain.linearRampToValueAtTime(0, startTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+      }
+      var t = ctx.currentTime;
+      tone(880, t,        0.3);
+      tone(660, t + 0.32, 0.3);
+      setTimeout(function() { try { ctx.close(); } catch(e) {} }, 800);
+    } catch(e) {}
+  }
+
+  window.toggleNotifMute = function() {
+    _notifSoundMuted = !_notifSoundMuted;
+    var btn = document.getElementById('notif-mute-btn');
+    var volSlider = document.getElementById('notif-volume');
+    var currentVol = volSlider ? parseInt(volSlider.value, 10) : Math.round(_notifVolume * 100);
+    if (_notifSoundMuted) {
+      localStorage.setItem('ss-notif-sound', 'off');
+      if (btn) btn.textContent = '🔕';
+    } else {
+      localStorage.removeItem('ss-notif-sound');
+      if (btn) btn.textContent = (currentVol === 0) ? '🔕' : '🔔';
+    }
+  };
+
+  window.setNotifVolume = function(val) {
+    _notifVolume = val / 100;
+    localStorage.setItem('ss-notif-vol', _notifVolume);
+    var pctLabel = document.getElementById('notif-vol-pct');
+    if (pctLabel) pctLabel.textContent = val + '%';
+    var muteBtn = document.getElementById('notif-mute-btn');
+    if (muteBtn) muteBtn.textContent = (val == 0 || _notifSoundMuted) ? '🔕' : '🔔';
+  };
+
+  // Set initial mute icon and slider value
+  (function() {
+    var btn = document.getElementById('notif-mute-btn');
+    if (btn) btn.textContent = _notifSoundMuted ? '🔕' : '🔔';
+    var slider = document.getElementById('notif-volume');
+    var initialVol = Math.round(_notifVolume * 100);
+    if (slider) slider.value = initialVol;
+    var pctLabel = document.getElementById('notif-vol-pct');
+    if (pctLabel) pctLabel.textContent = initialVol + '%';
+  })();
+
+  // ── Navbar Layout ─────────────────────────────────────────────────────────
+  function applyNavbarLayout() {
+    var usernameLabel = document.getElementById('navbar-username-label');
+    var profilePill   = document.getElementById('navbar-profile-pill');
+    if (!usernameLabel) return;
+    if (window.innerWidth < 360) {
+      usernameLabel.style.display    = 'none';
+      profilePill.style.paddingRight = '4px';
+    } else {
+      usernameLabel.style.display    = 'inline';
+      profilePill.style.paddingRight = '12px';
+    }
+  }
+  applyNavbarLayout();
+  window.addEventListener('resize', applyNavbarLayout);
+
+  // ── Responsive panel width ────────────────────────────────────────────────
+  function applyNotifPanelLayout() {
+    var panel = document.getElementById('notif-panel');
+    if (!panel) return;
+    if (window.innerWidth < 400) {
+      panel.style.left  = '8px';
+      panel.style.right = '8px';
+      panel.style.width = 'auto';
+    } else {
+      panel.style.left  = '';
+      panel.style.right = '8px';
+      panel.style.width = '340px';
+    }
+  }
+  applyNotifPanelLayout();
+  window.addEventListener('resize', applyNotifPanelLayout);
+
+  // ── Notification System ───────────────────────────────────────────────────
+  var notifOpen = false;
+  var notifData = [];
+  var _activeFilter = 'all';
+  var _prevRawIds = [];
+
+  // ── Close and navigate ────────────────────────────────────────────────────
+  function closeAndNavigate(url) {
+    var panel = document.getElementById('notif-panel');
+    if (panel) { panel.style.display = 'none'; panel.style.animation = ''; }
+    notifOpen = false;
+    window.location.href = url;
+  }
+  // Expose for inline onclick handlers
+  window._notifCloseAndNavigate = closeAndNavigate;
+
+  // ── Filter tabs ───────────────────────────────────────────────────────────
+  window.setNotifFilter = function(tab) {
+    _activeFilter = tab;
+    var tabs = document.querySelectorAll('.notif-filter-tab');
+    tabs.forEach(function(t) {
+      var isActive = t.dataset.filter === tab;
+      t.style.color = isActive ? '#818cf8' : '#64748b';
+      t.style.borderBottom = isActive ? '2px solid #6366f1' : '2px solid transparent';
+      t.style.fontWeight = isActive ? '700' : '400';
+    });
+    renderFilteredList();
+  };
+
+  function renderFilteredList() {
+    var dismissed = getDismissed();
+    var active = notifData.filter(function(a) {
+      if (a.id && dismissed.indexOf(a.id) !== -1) return false;
+      return true;
+    });
+    if (_activeFilter === 'critical') {
+      active = active.filter(function(a) { return a.type === 'critical'; });
+    } else if (_activeFilter === 'info') {
+      active = active.filter(function(a) { return a.type === 'info'; });
+    }
+    renderNotifications(active);
+  }
+
+  // ── Dismissed alerts (localStorage) ──────────────────────────────────────
+  function getDismissed() {
+    try { return JSON.parse(localStorage.getItem('ss-notif-dismissed') || '[]'); } catch(e) { return []; }
+  }
+  function setDismissed(arr) {
+    try { localStorage.setItem('ss-notif-dismissed', JSON.stringify(arr)); } catch(e) {}
+  }
+
+  // ── Seen alerts (localStorage) ────────────────────────────────────────────
+  function getSeen() {
+    try { return JSON.parse(localStorage.getItem('ss-notif-seen') || '[]'); } catch(e) { return []; }
+  }
+  function addSeen(ids) {
+    if (!ids || ids.length === 0) return;
+    var seen = getSeen();
+    ids.forEach(function(id) { if (seen.indexOf(id) === -1) seen.push(id); });
+    try { localStorage.setItem('ss-notif-seen', JSON.stringify(seen)); } catch(e) {}
+  }
+
+  // ── Clear all ─────────────────────────────────────────────────────────────
+  window.clearAllNotifs = function() {
+    var ids = notifData.filter(function(a) { return a.id; }).map(function(a) { return a.id; });
+    var existing = getDismissed();
+    ids.forEach(function(id) { if (existing.indexOf(id) === -1) existing.push(id); });
+    setDismissed(existing);
+    var clearBtn = document.getElementById('notif-clear-btn');
+    if (clearBtn) clearBtn.style.display = 'none';
+    renderNotifications([]);
+    updateBadge(0);
+    var countLabel = document.getElementById('notif-count-label');
+    if (countLabel) {
+      countLabel.textContent = 'All clear';
+      countLabel.style.background = '#10b981';
+    }
+  };
+
+  window.toggleNotifPanel = function() {
+    var panel = document.getElementById('notif-panel');
+    if (!panel) return;
+    notifOpen = !notifOpen;
+    if (notifOpen) {
+      applyNotifPanelLayout();
+      panel.style.display = 'block';
+      panel.style.animation = 'notifSlideIn 220ms ease-out';
+      loadNotifications();
+    } else {
+      panel.style.display = 'none';
+      panel.style.animation = '';
+    }
+  };
+
+  // Close when clicking outside
+  document.addEventListener('click', function(e) {
+    var wrapper = document.getElementById('notif-wrapper');
+    if (wrapper && !wrapper.contains(e.target)) {
+      var panel = document.getElementById('notif-panel');
+      if (panel) { panel.style.display = 'none'; panel.style.animation = ''; }
+      notifOpen = false;
+    }
+  });
+
+  function loadNotifications() {
+    fetch('/api/notifications')
+      .then(function(r) { return r.ok ? r.json() : { alerts: [], count: 0 }; })
+      .then(function(data) {
+        var raw = data.alerts || [];
+        notifData = raw;
+        renderFilteredList();
+        // Mark all fetched IDs as seen AFTER rendering (so badge shows correctly first)
+        var fetchedIds = raw.filter(function(a) { return a.id; }).map(function(a) { return a.id; });
+        setTimeout(function() { addSeen(fetchedIds); }, 500);
+        updateBadgeFromData(raw);
+      })
+      .catch(function() { renderNotifications([]); });
+  }
+
+  function renderNotifications(alerts) {
+    var list = document.getElementById('notif-list');
+    var countLabel = document.getElementById('notif-count-label');
+    var clearBtn = document.getElementById('notif-clear-btn');
+    if (!list) return;
+
+    // Compute unseen + undismissed count for badge pill
+    var dismissed = getDismissed();
+    var seen = getSeen();
+    var undismissed = notifData.filter(function(a) {
+      return !(a.id && dismissed.indexOf(a.id) !== -1);
+    });
+    var cnt = undismissed.filter(function(a) {
+      return !(a.id && seen.indexOf(a.id) !== -1);
+    }).length;
+
+    // Update count badge pill
+    if (countLabel) {
+      countLabel.textContent = cnt > 0 ? cnt + ' alert' + (cnt > 1 ? 's' : '') : 'All clear';
+      if (cnt === 0) {
+        countLabel.style.background = '#10b981';
+      } else if (cnt <= 2) {
+        countLabel.style.background = '#f59e0b';
+      } else {
+        countLabel.style.background = '#ef4444';
+      }
+    }
+
+    // Show/hide clear all button
+    if (clearBtn) {
+      clearBtn.style.display = undismissed.length > 0 ? 'inline' : 'none';
+    }
+
+    if (alerts.length === 0) {
+      list.innerHTML = '<div style="padding:36px 16px;text-align:center">'
+        + '<div style="position:relative;display:inline-block;margin-bottom:12px">'
+        + '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,0.18) 0%,transparent 70%)"></div>'
+        + '<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:relative;z-index:1">'
+        + '<circle cx="24" cy="24" r="20" stroke="#10b981" stroke-width="2.5" fill="none" stroke-dasharray="125.6" stroke-dashoffset="0" style="animation:checkCircle 0.6s ease-out forwards"/>'
+        + '<path d="M14 24l8 8 12-14" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-dasharray="30" stroke-dashoffset="30" style="animation:checkMark 0.4s 0.5s ease-out forwards"/>'
+        + '</svg>'
+        + '</div>'
+        + '<div style="font-size:0.82rem;font-weight:700;color:#e2e8f0;margin-bottom:4px">All caught up!</div>'
+        + '<div style="font-size:0.7rem;color:#475569">No pending alerts at this time</div>'
+        + '</div>';
+      return;
+    }
+
+    var colors = { critical: '#ef4444', warning: '#f59e0b', info: '#6366f1' };
+    var bgs    = { critical: 'rgba(239,68,68,0.06)', warning: 'rgba(245,158,11,0.06)', info: 'rgba(99,102,241,0.06)' };
+    var iconBgs = { critical: 'rgba(239,68,68,0.15)', warning: 'rgba(245,158,11,0.15)', info: 'rgba(99,102,241,0.15)' };
+    var seen = getSeen();
+
+    list.innerHTML = alerts.map(function(a) {
+      var c      = colors[a.type] || colors.info;
+      var bg     = bgs[a.type]   || bgs.info;
+      var iconBg = iconBgs[a.type] || iconBgs.info;
+      var isSeen = a.id && seen.indexOf(a.id) !== -1;
+      var link   = a.eventId ? '/events/' + a.eventId : (a.link || '#');
+      var dotStyle = 'width:7px;height:7px;border-radius:50%;background:' + c + ';flex-shrink:0;margin-top:5px;display:' + (isSeen ? 'none' : 'inline-block');
+      var itemStyle = 'display:flex;align-items:flex-start;text-decoration:none;padding:12px 14px;border-radius:10px;margin-bottom:4px;border-left:4px solid ' + c + ';background:' + bg + ';gap:10px;transition:all 150ms ease;' + (isSeen ? 'opacity:0.72' : '');
+      return '<a href="' + escHtml(link) + '" onclick="event.preventDefault();_notifCloseAndNavigate(\'' + link.replace(/'/g, "\\'") + '\')" style="' + itemStyle + '"'
+        + ' onmouseover="this.style.filter=\'brightness(1.08)\';this.style.transform=\'translateY(-1px)\'"'
+        + ' onmouseout="this.style.filter=\'\';this.style.transform=\'\'">'
+        + '<span style="' + dotStyle + '"></span>'
+        + '<span style="font-size:1.2rem;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;background:' + iconBg + ';border-radius:50%;padding:4px">' + (a.icon || '🔔') + '</span>'
+        + '<div style="min-width:0;flex:1">'
+        + '<div style="font-size:0.76rem;font-weight:800;color:' + c + ';margin-bottom:2px">' + escHtml(a.title) + '</div>'
+        + '<div style="font-size:0.69rem;color:#94a3b8;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">' + escHtml(a.message) + '</div>'
+        + '</div></a>';
+    }).join('');
+  }
+
+  function escHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function updateBadge(count) {
+    var badge = document.getElementById('notif-badge');
+    if (!badge) return;
+    if (count > 0) {
+      badge.textContent = count > 9 ? '9+' : count;
+      badge.style.display = 'inline-flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  function updateBadgeFromData(raw) {
+    var dismissed = getDismissed();
+    var seen = getSeen();
+    var count = raw.filter(function(a) {
+      if (a.id && dismissed.indexOf(a.id) !== -1) return false;
+      if (a.id && seen.indexOf(a.id) !== -1) return false;
+      return true;
+    }).length;
+    updateBadge(count);
+  }
+
+  // Auto-poll every 15 seconds + badge pulse + chime on new alerts
+  var _lastNotifCount = 0;
+  var _isFirstPoll = true;
+
+  function pollNotifications() {
+    fetch('/api/notifications')
+      .then(function(r) { return r.ok ? r.json() : { alerts: [], count: 0 }; })
+      .then(function(data) {
+        var raw = data.alerts || [];
+        var rawIds = raw.filter(function(a) { return a.id; }).map(function(a) { return a.id; });
+
+        // Detect new IDs
+        var newIds = rawIds.filter(function(id) { return _prevRawIds.indexOf(id) === -1; });
+        if (!_isFirstPoll && newIds.length > 0) {
+          // New alerts arrived — only remove new IDs from dismissed (don't nuke all)
+          var dismissed = getDismissed();
+          var updatedDismissed = dismissed.filter(function(id) { return newIds.indexOf(id) === -1; });
+          setDismissed(updatedDismissed);
+          // Remove new IDs from seen so they appear unread
+          var seen = getSeen();
+          var updatedSeen = seen.filter(function(id) { return newIds.indexOf(id) === -1; });
+          try { localStorage.setItem('ss-notif-seen', JSON.stringify(updatedSeen)); } catch(e) {}
+          _prevRawIds = [];
+        }
+        _prevRawIds = rawIds;
+
+        var count = data.count || 0;
+        var isNew = !_isFirstPoll && count > _lastNotifCount;
+
+        if (isNew) {
+          // Pulse badge
+          var badge = document.getElementById('notif-badge');
+          if (badge) {
+            badge.style.transform = 'scale(1.4)';
+            setTimeout(function(){ badge.style.transform = ''; }, 300);
+          }
+          // Play chime
+          playNotifChime();
+        }
+
+        _isFirstPoll = false;
+        _lastNotifCount = count;
+
+        // Update badge using seen+dismissed awareness
+        notifData = raw;
+        updateBadgeFromData(raw);
+
+        // Update list silently if panel is open
+        if (notifOpen) {
+          renderFilteredList();
+        }
+
+        // Update last-refreshed timestamp
+        var ts = document.getElementById('notif-timestamp');
+        if (ts) {
+          var now = new Date();
+          ts.textContent = 'Updated ' + now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+        }
+      })
+      .catch(function() {});
+  }
+
+  // Initial load after 2s, then every 15s
+  setTimeout(pollNotifications, 2000);
+  setInterval(pollNotifications, 15000);
+})();
+</script>
+
+<!-- Premium Confirmation Modal -->
+<div id="ss-confirm-overlay">
+    <div id="ss-confirm-box">
+      <div id="ss-confirm-icon-wrap">
+        <svg id="ss-confirm-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"></svg>
+      </div>
+      <div id="ss-confirm-title"></div>
+      <div id="ss-confirm-msg"></div>
+      <div id="ss-confirm-actions">
+        <button id="ss-confirm-cancel" type="button">Cancel</button>
+        <button id="ss-confirm-ok" type="button">Confirm</button>
+      </div>
+    </div>
+  </div>

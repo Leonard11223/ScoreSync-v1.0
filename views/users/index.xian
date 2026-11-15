@@ -1,0 +1,390 @@
+{{> head }}
+<body class="min-h-screen flex flex-col ss-page-bg">
+{{> navbar }}
+<div class="flex flex-1 overflow-hidden">
+{{> sidebar }}
+<main class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
+  <style>
+    @media (max-width: 640px) {
+      /* KPI cards: 2 columns on mobile */
+      .users-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    }
+  </style>
+  {{#if success_msg}}<div class="alert-success animate-fadeup"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>{{success_msg}}</div>{{/if}}
+  {{#if error_msg}}<div class="alert-error animate-fadeup"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>{{error_msg}}</div>{{/if}}
+
+  <div class="flex items-start justify-between animate-fadeup">
+    <div class="page-header mb-0">
+      <div class="breadcrumb"><a href="/dashboard">Dashboard</a><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg><span>Users</span></div>
+      <h1>User Management</h1>
+      <p>Manage all registered ScoreSync users.</p>
+    </div>
+  </div>
+
+  {{#if notifyGmail}}
+  <div id="gmail-notify-banner" class="card-flat p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fadeup" style="border:1px solid rgba(16,185,129,0.3)">
+    <div class="flex items-start gap-3">
+      <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div>
+        <h3 class="font-bold text-emerald-950 text-base">Account Approved for {{notifyName}} ({{notifyEmail}})</h3>
+        <p class="text-emerald-800 text-xs mt-0.5">Send a Gmail notification directly to their inbox to confirm their account approval.</p>
+      </div>
+    </div>
+    <a href="{{notifyGmail}}" target="_blank"
+      onclick="sendAndDismiss(this)"
+      class="btn-sm text-xs px-5 py-2.5 flex items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700 border-none shadow-md font-bold flex-shrink-0">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+      Send Gmail Notification
+    </a>
+  </div>
+  <script>
+  function sendAndDismiss(btn) {
+    // Small delay so Gmail tab opens first, then banner fades out
+    setTimeout(function() {
+      const banner = document.getElementById('gmail-notify-banner');
+      if (banner) {
+        banner.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        banner.style.opacity = '0';
+        banner.style.transform = 'translateY(-8px)';
+        setTimeout(function() { banner.remove(); }, 420);
+      }
+    }, 300);
+  }
+  </script>
+  {{/if}}
+
+  <!-- Stats -->
+  <div class="users-stats-grid grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 animate-fadeup-1">
+    <div class="card-flat px-5 py-4 flex items-center gap-4">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm" style="background:linear-gradient(135deg,#1e3a8a,#2563eb)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div><p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Total</p><p class="text-2xl font-black text-slate-800">{{totalUsers}}</p></div>
+    </div>
+    <div class="card-flat px-5 py-4 flex items-center gap-4">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm" style="background:linear-gradient(135deg,#1e3a8a,#2563eb)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div><p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Admins</p><p class="text-2xl font-black text-blue-700">{{adminCount}}</p></div>
+    </div>
+    <div class="card-flat px-5 py-4 flex items-center gap-4">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm" style="background:linear-gradient(135deg,#4c1d95,#7c3aed)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <div><p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Judges</p><p class="text-2xl font-black text-purple-700">{{judgeCount}}</p></div>
+    </div>
+    <div class="card-flat px-5 py-4 flex items-center gap-4">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm" style="background:linear-gradient(135deg,#92400e,#d97706)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="m9 10 2 2 4-4"/></svg></div>
+      <div><p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Tabulators</p><p class="text-2xl font-black text-amber-700">{{tabulatorCount}}</p></div>
+    </div>
+    <div class="card-flat px-5 py-4 flex items-center gap-4">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm" style="background:linear-gradient(135deg,#78350f,#f59e0b)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/></svg></div>
+      <div><p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Organizers</p><p class="text-2xl font-black text-yellow-600">{{organizerCount}}</p></div>
+    </div>
+  </div>
+
+  <!-- Pending Account Requests -->
+  {{#if pendingUsers.length}}
+  <div class="section-card border-2 border-amber-300 bg-amber-50/20 animate-fadeup-1">
+    <div class="section-header bg-amber-100/50 border-b border-amber-200">
+      <h2 class="text-amber-900 flex items-center gap-2 font-bold">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Pending Account Requests ({{pendingCount}})
+      </h2>
+      <span class="badge badge-yellow">Action Required</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Applicant Name</th>
+            <th>Email Address</th>
+            <th>Requested Role</th>
+            <th>Date Requested</th>
+            <th class="text-right pr-5">Confirm &amp; Notify</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each pendingUsers}}
+          <tr class="hover:bg-amber-100/30">
+            <td>
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full flex items-center justify-center text-amber-900 font-black text-sm bg-amber-200 shadow-sm">
+                  {{#if name}}{{name.[0]}}{{else}}U{{/if}}
+                </div>
+                <div>
+                  <div class="font-bold text-slate-800 text-sm">{{name}}</div>
+                  <div class="text-amber-700 text-xs font-semibold">Pending Approval</div>
+                </div>
+              </div>
+            </td>
+            <td class="text-slate-700 font-medium text-sm">{{email}}</td>
+            <td><span class="badge badge-purple uppercase font-extrabold text-[10px]">{{role}}</span></td>
+            <td class="text-slate-500 text-xs">{{createdAt}}</td>
+            <td class="text-right pr-5">
+              <div class="flex items-center justify-end gap-2">
+                <form method="POST" action="/users/{{id}}/approve" class="inline">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+                  <button type="submit" style="height:34px;padding:0 12px;font-size:0.75rem;font-weight:700;display:inline-flex;align-items:center;gap:5px;min-height:unset;border-radius:999px;border:none;cursor:pointer;background:linear-gradient(135deg,#047857,#10b981);color:#fff">
+                    Approve
+                  </button>
+                </form>
+                <form method="POST" action="/users/{{id}}/reject" onsubmit="return false" data-confirm-title="Reject Request" data-confirm-msg="Reject this account request?" data-confirm-ok="Reject" data-confirm-type="warning" class="inline">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+                  <button type="submit" style="height:34px;padding:0 12px;font-size:0.75rem;font-weight:700;display:inline-flex;align-items:center;gap:5px;min-height:unset;border-radius:999px;background:linear-gradient(135deg,#b91c1c,#ef4444);color:#fff;border:none">
+                    Reject
+                  </button>
+                </form>
+                <a href="{{gmailUrl}}" target="_blank" style="height:34px;padding:0 12px;font-size:0.75rem;font-weight:700;display:inline-flex;align-items:center;gap:5px;min-height:unset;border-radius:999px;background:linear-gradient(135deg,#b91c1c,#ef4444);color:#fff;border:none;text-decoration:none">
+                  Gmail
+                </a>
+              </div>
+            </td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {{/if}}
+
+  <!-- Table -->
+  <div class="section-card animate-fadeup-2">
+    <div class="section-header">
+      <h2><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>All Users</h2>
+      <button type="button" onclick="toggleAddUserModal()" class="btn-sm btn-sm-blue text-xs"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add User</button>
+    </div>
+    {{#if users.length}}
+    <div class="overflow-x-auto">
+      <table class="data-table">
+        <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Joined</th><th>Change Role</th><th class="text-right pr-5">Action</th></tr></thead>
+        <tbody id="users-tbody">
+          {{#each users}}
+          <tr>
+            <td>
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-black flex-shrink-0 shadow-sm"
+                  style="background:{{#if (eq role 'admin')}}linear-gradient(135deg,#1e3a8a,#2563eb){{else}}{{#if (eq role 'judge')}}linear-gradient(135deg,#4c1d95,#7c3aed){{else}}linear-gradient(135deg,#064e3b,#059669){{/if}}{{/if}}">
+                  {{#if name}}{{name.[0]}}{{else}}U{{/if}}
+                </div>
+                <div>
+                  <div class="font-semibold text-slate-800 text-sm">{{name}}</div>
+                  <div class="text-slate-400 text-xs mt-0.5 capitalize">{{role}}</div>
+                </div>
+              </div>
+            </td>
+            <td class="text-slate-500 text-sm">{{email}}</td>
+            <td>
+              <span class="badge {{#if (eq role 'admin')}}badge-blue{{else}}{{#if (eq role 'judge')}}badge-purple{{else}}badge-green{{/if}}{{/if}}">
+                {{role}}
+              </span>
+            </td>
+            <td class="text-slate-400 text-xs">{{createdAt}}</td>
+            <td>
+              {{#if (eq role 'admin')}}
+              <!-- Admin role is protected &mdash; cannot be changed -->
+              <span class="text-xs font-bold px-3 py-1.5 rounded-lg" style="background:rgba(37,99,235,0.10);color:#93c5fd;border:1px solid rgba(37,99,235,0.2)">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;margin-right:4px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Protected
+              </span>
+              {{else}}
+              <form method="POST" action="/users/{{id}}/role" class="flex items-center gap-2">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+                <select name="role" class="text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400 form-input-bare">
+                  <option value="judge"     {{#if (eq role 'judge')}}selected{{/if}}>Judge</option>
+                  <option value="organizer" {{#if (eq role 'organizer')}}selected{{/if}}>Organizer</option>
+                  <option value="tabulator" {{#if (eq role 'tabulator')}}selected{{/if}}>Tabulator</option>
+                </select>
+                <button type="submit" class="btn-sm btn-sm-blue text-xs px-2.5 py-1.5"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></button>
+              </form>
+              {{/if}}
+            </td>
+            <td class="text-right pr-5">
+              <div class="flex items-center justify-end gap-1.5 flex-wrap">
+                <a href="{{gmailUrl}}" target="_blank" class="btn-sm text-xs" style="height:32px;padding:0 10px;display:inline-flex;align-items:center;gap:4px;background:#dc2626;color:#fff;border-color:transparent;border-radius:999px">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                  Gmail
+                </a>
+                {{#unless (eq role 'admin')}}
+                <form method="POST" action="/users/{{id}}/delete" onsubmit="return false" data-confirm-title="Remove User" data-confirm-msg="Remove this user?" data-confirm-ok="Remove" data-confirm-type="danger" class="inline">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+                  <button type="submit" class="btn-sm btn-sm-red text-xs" style="height:32px;width:32px;padding:0;display:inline-flex;align-items:center;justify-content:center" title="Delete User"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+                </form>
+                {{/unless}}
+              </div>
+            </td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+    {{else}}
+    <div class="py-16 text-center text-slate-400">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#e2e8f0" stroke-width="1.5" class="mx-auto mb-4"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+      <p class="font-semibold text-slate-600 mb-1">No users yet</p>
+      <a href="/register" class="btn-primary text-sm mt-3 inline-flex"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add First User</a>
+    </div>
+    {{/if}}
+  </div>
+
+
+
+</main>
+</div>
+
+<!-- Add User Modal -->
+<div id="addUserModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4"
+  style="background:rgba(0,0,0,0.7);backdrop-filter:blur(4px)">
+  <div class="rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+    style="background:var(--bg-card);border:1px solid rgba(255,255,255,0.1)">
+    <div class="p-5 flex items-center justify-between" style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8)">
+      <div class="flex items-center gap-2 text-white">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="19 8 19 14 22 11 16 11"/></svg>
+        <h3 class="font-bold text-base">Add New User</h3>
+      </div>
+      <button type="button" onclick="toggleAddUserModal()" class="text-white/70 hover:text-white text-lg font-bold p-1">&times;</button>
+    </div>
+
+    <form method="POST" action="/users" class="p-6 space-y-4">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:var(--text-muted)">Full Name</label>
+        <input type="text" name="name" required placeholder="e.g. Maria Santos" class="form-input-bare"/>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:var(--text-muted)">Email Address</label>
+        <input type="email" name="email" required placeholder="maria@example.com" class="form-input-bare"/>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:var(--text-muted)">Password</label>
+        <div style="position:relative">
+          <input type="password" name="password" id="addUserPwd" required minlength="6" placeholder="At least 6 characters" class="form-input-bare" style="padding-right:44px"/>
+          <button type="button" onclick="toggleAddUserPwd()"
+            style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;color:var(--text-faint);display:flex;align-items:center">
+            <svg id="addUserEyeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:var(--text-muted)">Assign System Role</label>
+        <select name="role" required class="form-input-bare">
+          <option value="judge">Judge &mdash; Can enter scores &amp; view results</option>
+          <option value="organizer">Organizer &mdash; Can manage &amp; oversee events</option>
+          <option value="tabulator">Tabulator &mdash; Can enter and review all event scores</option>
+        </select>
+      </div>
+      <div class="pt-3 flex items-center justify-end gap-2">
+        <button type="button" onclick="toggleAddUserModal()" class="btn-sm btn-sm-gray">Cancel</button>
+        <button type="submit" class="btn-primary text-xs">Create Account</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function toggleAddUserModal() {
+    const modal = document.getElementById('addUserModal');
+    modal.classList.toggle('hidden');
+  }
+  const _eyeOpen  = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const _eyeClose = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+  function toggleAddUserPwd() {
+    const input = document.getElementById('addUserPwd');
+    const icon  = document.getElementById('addUserEyeIcon').parentElement;
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.innerHTML = _eyeOpen;
+    } else {
+      input.type = 'password';
+      icon.innerHTML = _eyeClose;
+    }
+  }
+</script>
+
+<script>
+(function() {
+  var tbody = document.getElementById('users-tbody');
+  if (!tbody) return;
+  var rows = Array.from(tbody.querySelectorAll('tr'));
+  if (rows.length === 0) return;
+
+  var PAGE_SIZE = 10;
+  var currentPage = 1;
+  var totalPages = Math.ceil(rows.length / PAGE_SIZE);
+
+  // Create pagination container after the table's parent section-card
+  var container = document.createElement('div');
+  container.id = 'users-pagination';
+  container.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px 20px;border-top:1px solid rgba(255,255,255,0.06)';
+  tbody.closest('.section-card').appendChild(container);
+
+  function showPage(page) {
+    currentPage = page;
+    var start = (page - 1) * PAGE_SIZE;
+    var end   = start + PAGE_SIZE;
+    rows.forEach(function(row, i) {
+      row.style.display = (i >= start && i < end) ? '' : 'none';
+    });
+    render();
+  }
+
+  function render() {
+    container.innerHTML = '';
+    if (totalPages <= 1) return;
+
+    var info = document.createElement('div');
+    var start = (currentPage - 1) * PAGE_SIZE + 1;
+    var end   = Math.min(currentPage * PAGE_SIZE, rows.length);
+    info.style.cssText = 'font-size:11px;color:var(--text-faint)';
+    info.textContent = 'Showing ' + start + '–' + end + ' of ' + rows.length + ' users';
+    container.appendChild(info);
+
+    var btnsRow = document.createElement('div');
+    btnsRow.style.cssText = 'display:flex;gap:4px;flex-wrap:wrap;justify-content:center';
+
+    function mkBtn(label, page, disabled, active) {
+      var b = document.createElement('button');
+      b.textContent = label;
+      b.disabled = disabled;
+      b.style.cssText = 'padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;cursor:' + (disabled ? 'not-allowed' : 'pointer') + ';border:1px solid;'
+        + (active
+          ? 'background:rgba(16,185,129,0.2);color:#34d399;border-color:rgba(16,185,129,0.4)'
+          : 'background:rgba(255,255,255,0.04);color:var(--text-faint);border-color:rgba(255,255,255,0.1)');
+      if (!disabled && !active) {
+        b.addEventListener('mouseenter', function(){ b.style.background='rgba(255,255,255,0.08)'; });
+        b.addEventListener('mouseleave', function(){ b.style.background='rgba(255,255,255,0.04)'; });
+      }
+      if (!disabled) b.addEventListener('click', function(){ showPage(page); });
+      return b;
+    }
+
+    btnsRow.appendChild(mkBtn('Prev', currentPage - 1, currentPage === 1, false));
+    for (var p = 1; p <= totalPages; p++) {
+      btnsRow.appendChild(mkBtn(String(p), p, false, p === currentPage));
+    }
+    btnsRow.appendChild(mkBtn('Next', currentPage + 1, currentPage === totalPages, false));
+    container.appendChild(btnsRow);
+  }
+
+  showPage(1);
+})();
+</script>
+<script>
+(function() {
+  var REFRESH_MS = 15000;
+  var lastActivity = Date.now();
+  ['mousemove','keydown','click','scroll','touchstart','wheel'].forEach(function(ev) {
+    document.addEventListener(ev, function(){ lastActivity = Date.now(); }, { passive: true });
+  });
+  function canRefresh() {
+    if (document.hidden) return false;
+    if (document.activeElement && ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return false;
+    if (document.querySelector('.fixed.inset-0:not([style*="display: none"]):not([style*="display:none"])')) return false;
+    if ((document.querySelector('main') || document.documentElement).scrollTop > 300) return false;
+    if (Date.now() - lastActivity < REFRESH_MS) return false;
+    return true;
+  }
+  setInterval(function() {
+    if (canRefresh()) location.reload();
+  }, REFRESH_MS);
+})();
+</script>
+
+</body>
+</html>

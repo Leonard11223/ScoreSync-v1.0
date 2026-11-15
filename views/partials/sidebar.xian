@@ -1,0 +1,273 @@
+﻿<aside id="main-sidebar" class="sidebar flex flex-col shadow-2xl">
+
+  <!-- Brand -->
+  <div class="px-4 flex-shrink-0 flex items-center justify-between" style="height:56px;border-bottom:1px solid rgba(255,255,255,0.08)">
+    <div class="flex items-center gap-3 sidebar-brand-content">
+      <img src="/scoresync-logo.png?v=8" alt="ScoreSync" class="w-10 h-10 rounded-full flex-shrink-0 shadow-lg object-cover" style="border:2px solid rgba(255,255,255,0.15)"/>
+      <div class="sidebar-label-text">
+        <div class="text-white font-black text-base leading-tight tracking-tight">ScoreSync</div>
+        <div class="text-blue-300 text-[10px] font-medium mt-0.5" style="opacity:0.7">Competition Management</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-1">
+      <!-- Desktop collapse toggle -->
+      <button type="button" id="sidebar-collapse-btn" onclick="toggleSidebarCollapse()"
+        class="hidden md:flex p-1.5 rounded-lg transition items-center justify-center"
+        style="color:rgba(148,163,184,0.5);min-height:unset;width:28px;height:28px" title="Collapse sidebar">
+        <!-- Panel/sidebar toggle icon -->
+        <svg id="sidebar-collapse-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <line x1="9" y1="3" x2="9" y2="21"/>
+        </svg>
+      </button>
+      <!-- Mobile close -->
+      <button type="button" onclick="toggleMobileSidebar()" class="md:hidden p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition" aria-label="Close Sidebar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="flex-1 px-3 py-3 overflow-y-auto">
+
+    <div class="sidebar-section">Main</div>
+
+    <a href="/dashboard" class="sidebar-link">
+      <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span>Dashboard</span>
+    </a>
+
+    {{#if isAdmin}}
+    <div class="sidebar-section">Event Management</div>
+
+    <a href="/events/create" class="sidebar-link">
+      <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>
+      <span>Create Event</span>
+    </a>
+
+    <a href="/events" class="sidebar-link">
+      <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      <span>Manage Events</span>
+    </a>
+
+    <a href="/inventory" class="sidebar-link">
+      <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z"/></svg>
+      <span>Ticket Sales</span>
+    </a>
+
+    <div class="sidebar-section">People</div>
+
+    <a href="/users" class="sidebar-link">
+      <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Manage Users</span>
+    </a>
+
+    {{/if}}
+
+    {{#if isJudge}}
+    <div class="sidebar-section">Scoring</div>
+
+    <a href="/events" class="sidebar-link">
+      <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      <span>Score Entry</span>
+      <span class="ml-auto w-2 h-2 bg-emerald-400 rounded-full"></span>
+    </a>
+
+    <a href="/events" class="sidebar-link">
+      <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>View Results</span>
+    </a>
+    {{/if}}
+
+    {{#if isTabulator}}
+    <div class="sidebar-section">Scoring</div>
+    <a href="/events" class="sidebar-link">
+      <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      <span>All Events</span>
+    </a>
+    <a href="/events" class="sidebar-link">
+      <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>View Results</span>
+    </a>
+    {{/if}}
+
+    {{#if isEncoder}}
+    <div class="sidebar-section">Encoder</div>
+
+    <a href="/events" class="sidebar-link">
+      <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+      <span>Contestant Entry</span>
+    </a>
+    {{/if}}
+
+    {{#if isOrganizer}}
+
+    <!-- Organizer: Events (collapsible) -->
+    <button type="button" onclick="toggleSection('org-events','org-events-chevron')"
+      class="w-full flex items-center justify-between px-3 py-2 mt-3 rounded-lg transition"
+      style="color:rgba(148,163,184,0.45);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.14em">
+      <span>Event Management</span>
+      <svg id="org-events-chevron" class="sidebar-icon transition-transform duration-200" style="width:11px;height:11px;color:rgba(148,163,184,0.35)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div id="org-events" class="space-y-0.5">
+      <a href="/events/create" class="sidebar-link">
+        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>
+        <span>Create Event</span>
+      </a>
+      <a href="/events" class="sidebar-link">
+        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span>All Events</span>
+      </a>
+      <a href="/events" class="sidebar-link">
+        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        <span>Contestants</span>
+      </a>
+      <a href="/events" class="sidebar-link">
+        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>View Results</span>
+      </a>
+    </div>
+
+    <!-- Organizer: Finance (collapsible) -->
+    <button type="button" onclick="toggleSection('org-finance','org-finance-chevron')"
+      class="w-full flex items-center justify-between px-3 py-2 mt-3 rounded-lg transition"
+      style="color:rgba(148,163,184,0.45);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.14em">
+      <span>Finance</span>
+      <svg id="org-finance-chevron" class="sidebar-icon transition-transform duration-200" style="width:11px;height:11px;color:rgba(148,163,184,0.35)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div id="org-finance" class="space-y-0.5">
+      <a href="/inventory" class="sidebar-link">
+        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z"/></svg>
+        <span>Ticket Sales</span>
+      </a>
+    </div>
+
+    {{/if}}
+
+    <div class="sidebar-section">Account</div>
+
+    <a href="/settings" class="sidebar-link">
+      <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Settings</span>
+    </a>
+
+  </nav>
+
+  <!-- User footer — sticky at bottom, always visible -->
+  <div class="sidebar-footer px-3 py-3 flex-shrink-0 mt-auto" style="border-top:1px solid var(--border);background:var(--bg-sidebar-foot)">
+    <!-- User card -->
+    <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl mb-2" style="background:rgba(255,255,255,0.07)">
+      <div class="relative flex-shrink-0">
+        <div class="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 shadow-md" style="border:2px solid rgba(255,255,255,0.2)">
+          {{#if userAvatar}}
+          <img src="{{userAvatar}}" alt="{{userName}}" class="w-full h-full object-cover"/>
+          {{else}}
+          <div class="w-full h-full grad-blue flex items-center justify-center text-white text-sm font-black">{{ userInitial }}</div>
+          {{/if}}
+        </div>
+        <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 rounded-full" style="border-color:#060e22"></span>
+      </div>
+      <div class="flex-1 min-w-0 sidebar-label-text">
+        <div class="text-white text-sm font-semibold truncate">{{ userName }}</div>
+        <div class="text-blue-300 text-[10px] capitalize mt-0.5" style="opacity:0.7">{{ userRole }}</div>
+      </div>
+    </div>
+    <!-- Sign Out button -->
+    <a href="/logout" class="sidebar-signout sidebar-label-text flex items-center justify-center gap-2 w-full py-2 rounded-xl text-xs font-bold transition"
+      style="color:rgba(252,165,165,0.85);background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2)"
+      onmouseover="this.style.background='rgba(239,68,68,0.15)';this.style.borderColor='rgba(239,68,68,0.4)'"
+      onmouseout="this.style.background='rgba(239,68,68,0.07)';this.style.borderColor='rgba(239,68,68,0.2)'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      <span>Sign Out</span>
+    </a>
+  </div>
+
+</aside>
+
+<style>
+  .sidebar-icon { width:16px; height:16px; flex-shrink:0; }
+  .sidebar > nav { flex:1 1 0 !important; min-height:0 !important; overflow-y:auto !important; overscroll-behavior:contain; }
+  .sidebar > .sidebar-footer { flex:0 0 auto !important; margin-top:auto; position:relative; z-index:1; }
+
+  /* Collapsed sidebar — desktop only */
+  @media (min-width: 768px) {
+    .sidebar.collapsed { width: 64px !important; }
+    .sidebar.collapsed .sidebar-label-text,
+    .sidebar.collapsed .sidebar-section,
+    .sidebar.collapsed .sidebar-link span,
+    .sidebar.collapsed .sidebar-link .ml-auto { display: none !important; }
+    .sidebar.collapsed .sidebar-link { justify-content: center; padding: 10px; border-left-color: transparent !important; }
+    .sidebar.collapsed .sidebar-link:hover { transform: none; }
+    .sidebar.collapsed .sidebar-brand-content { justify-content: center; }
+    .sidebar.collapsed #sidebar-collapse-btn {
+      position: absolute; right: -14px; top: 50%; transform: translateY(-50%);
+      background: #0d1424; border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px; width: 26px; height: 26px; z-index: 60;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.4);
+    }
+    .sidebar.collapsed nav button span { display: none !important; }
+    .sidebar.collapsed nav button { justify-content: center; padding: 10px; }
+    .sidebar.collapsed .sidebar-signout { display: flex !important; justify-content: center; padding: 10px !important; }
+    .sidebar.collapsed .sidebar-signout span { display: none !important; }
+  }
+
+  /* Mobile — sidebar is always a full-width overlay drawer, never collapsed */
+  @media (max-width: 767px) {
+    .sidebar { display: flex; flex-direction: column; height: 100vh; height: 100dvh; max-height: 100dvh; overflow: hidden; }
+    .sidebar > .sidebar-footer { padding-bottom:max(0.75rem, env(safe-area-inset-bottom)); }
+    .sidebar.collapsed { width: 260px !important; }
+    .sidebar.collapsed .sidebar-label-text,
+    .sidebar.collapsed .sidebar-section,
+    .sidebar.collapsed .sidebar-link span,
+    .sidebar.collapsed .sidebar-link .ml-auto { display: revert !important; }
+    .sidebar.collapsed .sidebar-link { justify-content: flex-start !important; padding: 9px 13px !important; }
+    .sidebar.collapsed .sidebar-brand-content { justify-content: flex-start !important; }
+    .sidebar.collapsed nav button span { display: inline !important; }
+    .sidebar.collapsed nav button { justify-content: space-between !important; padding: 8px 13px !important; }
+  }
+</style>
+<script>
+function toggleSection(sectionId, chevronId) {
+  var section = document.getElementById(sectionId);
+  var chevron = document.getElementById(chevronId);
+  if (!section) return;
+  var isHidden = section.style.display === 'none';
+  section.style.display = isHidden ? '' : 'none';
+  if (chevron) chevron.style.transform = isHidden ? '' : 'rotate(-90deg)';
+}
+
+function toggleSidebarCollapse() {
+  var sidebar = document.getElementById('main-sidebar');
+  var icon = document.getElementById('sidebar-collapse-icon');
+  if (!sidebar) return;
+  var collapsed = sidebar.classList.toggle('collapsed');
+  if (icon) icon.setAttribute('d', collapsed ? 'M9 18l6-6-6-6' : 'M15 18l-6-6 6-6');
+  try { localStorage.setItem('ss_sidebar_collapsed', collapsed ? '1' : '0'); } catch(e) {}
+}
+
+function fixSidebarForViewport() {
+  try {
+    var sidebar = document.getElementById('main-sidebar');
+    var icon = document.getElementById('sidebar-collapse-icon');
+    if (window.innerWidth < 768) {
+      // Mobile: always strip collapsed class and inline width, clear localStorage
+      if (sidebar) {
+        sidebar.classList.remove('collapsed');
+        sidebar.style.removeProperty('width');
+      }
+      try { localStorage.removeItem('ss_sidebar_collapsed'); } catch(e) {}
+    } else {
+      // Desktop: restore from preference
+      if (localStorage.getItem('ss_sidebar_collapsed') === '1') {
+        if (sidebar) sidebar.classList.add('collapsed');
+        if (icon) icon.setAttribute('d', 'M9 18l6-6-6-6');
+      }
+    }
+  } catch(e) {}
+}
+// Run immediately and also after DOM is ready
+fixSidebarForViewport();
+document.addEventListener('DOMContentLoaded', fixSidebarForViewport);
+// Re-check on resize (e.g. rotating phone)
+window.addEventListener('resize', function() { fixSidebarForViewport(); });
+</script>

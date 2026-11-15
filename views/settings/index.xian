@@ -1,0 +1,292 @@
+{{> head }}
+<body class="min-h-screen flex flex-col ss-page-bg">
+{{> navbar }}
+<div class="flex flex-1 overflow-hidden">
+{{> sidebar }}
+<main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+  {{#if success_msg}}<div class="alert-success animate-fadeup">{{success_msg}}</div>{{/if}}
+  {{#if error_msg}}<div class="alert-error animate-fadeup">{{error_msg}}</div>{{/if}}
+
+  <!-- -- Page Header -- -->
+  <div class="rounded-2xl p-5 sm:p-7 relative overflow-hidden animate-fadeup"
+    style="background:var(--bg-card);border:1px solid var(--border)">
+    <div class="absolute -right-12 -top-12 w-64 h-64 rounded-full blur-3xl pointer-events-none" style="background:rgba(99,102,241,0.06)"></div>
+    <div class="relative flex items-center justify-between gap-4">
+      <div class="space-y-1.5">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold"
+          style="background:rgba(99,102,241,0.15);color:#a5b4fc;border:1px solid rgba(99,102,241,0.25)">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Account &amp; Preferences
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight" style="color:var(--text-bright)">Settings</h1>
+        <p class="text-sm" style="color:var(--text-faint)">Manage your profile, role permissions, and tabulator configurations.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
+
+    <!-- -- Left: Forms -- -->
+    <div class="lg:col-span-2 space-y-5">
+
+      <!-- Profile Card -->
+      <div class="rounded-2xl overflow-hidden animate-fadeup-1" style="background:var(--bg-card);border:1px solid var(--border)">
+        <div class="px-6 py-4 flex items-center gap-3" style="border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02)">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.3)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div>
+            <h2 class="text-sm font-extrabold" style="color:var(--text-primary)">User Profile Settings</h2>
+            <p class="text-[11px]" style="color:var(--text-faint)">Update your account display details</p>
+          </div>
+        </div>
+        <div class="px-6 py-5 space-y-4">
+          <form action="/settings/update" method="POST" class="space-y-4">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+            <input type="hidden" name="avatar" id="avatar-b64"/>
+    <input type="hidden" name="removeAvatar" id="remove-avatar" value=""/>
+
+            <!-- Profile Picture Frame -->
+            <div class="flex items-center gap-4 sm:gap-5">
+              <div class="relative flex-shrink-0">
+                <!-- Avatar circle -->
+                <div id="avatar-frame" data-initial="{{userInitial}}" class="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center shadow-xl"
+                  style="background:linear-gradient(135deg,#1e3a8a,#4f46e5);border:3px solid rgba(99,102,241,0.4)">
+                  {{#if userAvatar}}
+                  <img id="avatar-preview" src="{{userAvatar}}" alt="Profile" class="w-full h-full object-cover"/>
+                  {{else}}
+                  <span id="avatar-initial" class="text-white font-black text-2xl">{{userInitial}}</span>
+                  <img id="avatar-preview" src="" alt="Profile" class="w-full h-full object-cover hidden"/>
+                  {{/if}}
+                </div>
+                <input type="file" id="avatar-file" accept="image/png,image/jpeg,image/jpg,image/webp" class="hidden" onchange="handleAvatarUpload(this)"/>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-extrabold text-sm" style="color:var(--text-primary)">{{userName}}</div>
+                <div class="text-xs mt-0.5 capitalize" style="color:var(--text-muted)">{{userRole}}</div>
+                <p class="text-[11px] mt-1.5" style="color:var(--text-secondary)">PNG, JPG, or WebP &mdash; Max 2 MB</p>
+                <div class="flex flex-wrap items-center gap-2 mt-3">
+                  <button type="button" onclick="document.getElementById('avatar-file').click()"
+                    class="btn-sm btn-sm-indigo text-xs">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M20 16.5v2A1.5 1.5 0 0 1 18.5 20h-13A1.5 1.5 0 0 1 4 18.5v-2"/></svg>
+                    Change photo
+                  </button>
+                  <button type="button" id="remove-avatar-button" onclick="removeProfilePhoto()"
+                    class="btn-sm btn-sm-red text-xs"
+                    style="display:{{#if userAvatar}}inline-flex{{else}}none{{/if}}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v5m4-5v5"/></svg>
+                    Remove photo
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-extrabold uppercase tracking-widest mb-1.5" style="color:#4b5563">Full Display Name</label>
+              <input type="text" name="name" value="{{userName}}" required class="form-input-bare w-full"/>
+            </div>
+            <div>
+              <label class="block text-[10px] font-extrabold uppercase tracking-widest mb-1.5" style="color:#4b5563">Email Address</label>
+              <input type="email" value="{{userEmail}}" disabled class="form-input-bare w-full" style="opacity:0.5;cursor:not-allowed"/>
+              <p class="text-[11px] mt-1" style="color:var(--text-faint)">Email is managed by system authentication.</p>
+            </div>
+            <div>
+              <label class="block text-[10px] font-extrabold uppercase tracking-widest mb-1.5" style="color:#4b5563">Assigned Role</label>
+              <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold capitalize"
+                style="{{#if isAdmin}}background:rgba(59,130,246,0.15);color:#93c5fd;border:1px solid rgba(59,130,246,0.3){{else}}{{#if isJudge}}background:rgba(139,92,246,0.15);color:#c4b5fd;border:1px solid rgba(139,92,246,0.3){{else}}{{#if isOrganizer}}background:rgba(245,158,11,0.15);color:#fcd34d;border:1px solid rgba(245,158,11,0.3){{else}}background:rgba(16,185,129,0.15);color:#6ee7b7;border:1px solid rgba(16,185,129,0.3){{/if}}{{/if}}{{/if}}">
+                <span class="w-2 h-2 rounded-full bg-current"></span>
+                {{userRole}}
+              </div>
+            </div>
+            <div class="flex justify-end pt-2">
+              <button type="submit" class="btn-primary text-xs px-5 py-2.5">
+                Save Profile Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+<script>
+function handleAvatarUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { alert('Image too large. Max 2MB.'); input.value=''; return; }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    // Compress/resize to max 300x300 to keep base64 small
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const MAX = 300;
+      let w = img.width, h = img.height;
+      if (w > h) { if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; } }
+      else        { if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const b64 = canvas.toDataURL('image/jpeg', 0.85);
+      document.getElementById('avatar-b64').value = b64;
+      document.getElementById('remove-avatar').value = '';
+      const preview = document.getElementById('avatar-preview');
+      const initial = document.getElementById('avatar-initial');
+      preview.src = b64;
+      preview.classList.remove('hidden');
+      if (initial) initial.classList.add('hidden');
+      document.getElementById('remove-avatar-button').style.display = 'inline-flex';
+      const navAvatar = document.querySelector('.navbar-avatar-img');
+      if (navAvatar) navAvatar.src = b64;
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeProfilePhoto() {
+  document.getElementById('avatar-b64').value = '';
+  document.getElementById('remove-avatar').value = '1';
+  document.getElementById('avatar-file').value = '';
+  const preview = document.getElementById('avatar-preview');
+  const initial = document.getElementById('avatar-initial');
+  preview.src = '';
+  preview.classList.add('hidden');
+  if (initial) initial.classList.remove('hidden');
+  document.getElementById('remove-avatar-button').style.display = 'none';
+  const navAvatar = document.querySelector('.navbar-avatar-img');
+  if (navAvatar) {
+    const avatarContainer = navAvatar.parentElement;
+    const initial = document.createElement('div');
+    initial.className = 'w-full h-full grad-brand flex items-center justify-center text-white text-xs font-black';
+    initial.textContent = document.getElementById('avatar-frame').dataset.initial;
+    navAvatar.remove();
+    avatarContainer.appendChild(initial);
+  }
+}
+</script>
+
+      <!-- System Behavior Card &mdash; accurate, read-only -->
+      <div class="rounded-2xl overflow-hidden animate-fadeup-1" style="background:var(--bg-card);border:1px solid var(--border)">
+        <div class="px-6 py-4 flex items-center gap-3" style="border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02)">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.3)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </div>
+          <div>
+            <h2 class="text-sm font-extrabold" style="color:var(--text-primary)">Scoring System Behavior</h2>
+            <p class="text-[11px]" style="color:var(--text-faint)">How scores are calculated in this system</p>
+          </div>
+        </div>
+        <div class="px-6 py-4 space-y-3 text-xs">
+
+          <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2.5" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <div>
+              <span class="font-bold" style="color:var(--text-primary)">Weighted Average Scoring</span>
+              <p class="text-[11px] mt-0.5" style="color:var(--text-muted)">Each criterion has a weight (%). Final score = sum of (score / maxScore &mdash; weight) across all criteria. Total weights must equal 100%.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2.5" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <div>
+              <span class="font-bold" style="color:var(--text-primary)">2 Decimal Precision</span>
+              <p class="text-[11px] mt-0.5" style="color:var(--text-muted)">All final scores and rankings are displayed to 2 decimal places (e.g. 98.75%).</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2.5" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <div>
+              <span class="font-bold" style="color:var(--text-primary)">Multi-Judge Average</span>
+              <p class="text-[11px] mt-0.5" style="color:var(--text-muted)">When multiple judges score, the system averages all judge scores per criteria before applying weights. Each judge's identity is anonymous to participants.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2.5" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <div>
+              <span class="font-bold" style="color:var(--text-primary)">Live Leaderboard</span>
+              <p class="text-[11px] mt-0.5" style="color:var(--text-muted)">Results update in real-time as judges submit scores. Rankings are recalculated automatically on every results page load.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3 p-3 rounded-xl" style="background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2.5" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <div>
+              <span class="font-bold" style="color:var(--text-primary)">Scoring Window</span>
+              <p class="text-[11px] mt-0.5" style="color:var(--text-muted)">Judges can only submit scores while the event status is <span class="font-bold" style="color:#6ee7b7">Ongoing</span>. Scoring is locked for Upcoming and Completed events.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Community Feature Requests &mdash; only shown when real submissions exist -->
+      {{#if suggestions.length}}
+      <div class="rounded-2xl overflow-hidden animate-fadeup-2" style="background:rgba(255,255,255,0.02);border:1px solid var(--border)">
+        <div class="px-6 py-4 flex items-center gap-3" style="border-bottom:1px solid var(--border-subtle)">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.25)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h2 class="text-sm font-extrabold" style="color:var(--text-primary)">Community Feature Requests</h2>
+        </div>
+        <div class="px-6 py-5 space-y-3">
+          {{#each suggestions}}
+          <div class="p-4 rounded-xl" style="background:rgba(255,255,255,0.03);border:1px solid var(--border)">
+            <div class="flex items-start justify-between gap-3">
+              <h3 class="text-xs font-bold" style="color:var(--text-primary)">{{title}}</h3>
+              <div class="flex items-center gap-1.5 flex-shrink-0">
+                <span class="badge badge-blue text-[10px]">{{category}}</span>
+                <span class="badge badge-gray text-[10px]">?? {{votes}}</span>
+              </div>
+            </div>
+            {{#if submittedBy}}<p class="text-[11px] mt-1" style="color:var(--text-faint)">By: <span class="font-semibold" style="color:var(--text-secondary)">{{submittedBy}}</span></p>{{/if}}
+          </div>
+          {{/each}}
+        </div>
+      </div>
+      {{/if}}
+
+    </div>
+
+    <!-- -- Right: System Info + Roadmap -- -->
+    <div class="space-y-5">
+
+      <!-- System Info -->
+      <div class="rounded-2xl overflow-hidden animate-fadeup-1" style="background:rgba(255,255,255,0.02);border:1px solid var(--border)">
+        <div class="px-5 py-3.5" style="border-bottom:1px solid var(--border-subtle)">
+          <h2 class="text-sm font-extrabold" style="color:var(--text-primary)">System Info</h2>
+        </div>
+        <div class="px-5 py-4 space-y-3 text-xs">
+          <div class="flex items-center justify-between py-1.5" style="border-bottom:1px solid rgba(255,255,255,0.05)">
+            <span style="color:var(--text-faint)">Role</span>
+            <span class="badge capitalize
+              {{#if isAdmin}}badge-blue{{else}}{{#if isJudge}}badge-purple{{else}}{{#if isOrganizer}}badge-yellow{{else}}badge-green{{/if}}{{/if}}{{/if}}">
+              {{userRole}}
+            </span>
+          </div>
+          <div class="flex items-center justify-between py-1.5">
+            <span style="color:var(--text-faint)">Sync Status</span>
+            <span class="inline-flex items-center gap-1.5 font-bold" style="color:#34d399">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" style="box-shadow:0 0 5px #10b981"></span>
+              Connected
+            </span>
+          </div>
+          <div class="pt-2">
+            <a href="/logout" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition"
+              style="background:rgba(239,68,68,0.10);color:#fca5a5;border:1px solid rgba(239,68,68,0.18)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Sign Out
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Planned Features removed &mdash; will show when real data is available -->
+
+
+</main>
+</div>
+
+</body>
+</html>

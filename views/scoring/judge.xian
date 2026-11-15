@@ -1,0 +1,1617 @@
+{{> head }}
+<body class="min-h-screen flex flex-col ss-page-bg">
+{{> navbar }}
+<div class="flex flex-1 overflow-hidden">
+{{> sidebar }}
+<main class="flex-1 overflow-y-auto overflow-x-hidden pb-32" id="scoring-main" style="min-width:0;opacity:0;transition:opacity 0.15s">
+
+  <span id="rt-event-id" data-event-id="{{event.id}}" data-judge-count="{{judgeCount}}" style="display:none"></span>
+
+  <!-- -- TOP BAR -- -->
+  <div class="sticky top-0 z-20 no-print" style="background:rgba(6,11,24,0.97);backdrop-filter:blur(16px);border-bottom:1px solid var(--border-subtle)">
+
+    <!-- Row 1: Event + judge info + ring -->
+    <div class="judge-top-row px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3">
+      <div class="judge-top-info min-w-0 flex items-center gap-3">
+        <!-- Back button -->
+        <a href="/dashboard" class="btn-icon no-min-h flex-shrink-0" title="Back to Dashboard">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+        <div class="min-w-0">
+        <div class="font-extrabold text-sm truncate" style="color:var(--text-primary)">{{event.name}}</div>
+        <div class="judge-top-meta text-xs">
+          <span>{{#if isTabulator}}Tabulator{{else}}Judge{{/if}}: <span class="judge-top-name">{{userName}}</span></span>
+          <span>Contestant <span id="hdr-pos">1</span> of {{contestants.length}}</span>
+          <span><span id="hdr-scored">0</span> of {{contestants.length}} scored</span>
+        </div>
+        </div><!-- /.min-w-0 -->
+      </div>
+      <div class="judge-top-actions flex items-center gap-2 flex-shrink-0">
+        <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs" style="background:rgba(255,255,255,0.05);border:1px solid var(--border)">
+          <svg id="completion-ring" width="28" height="28" viewBox="0 0 28 28">
+            <circle cx="14" cy="14" r="10" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+            <circle id="ring-progress" cx="14" cy="14" r="10" fill="none" stroke="#c9a227" stroke-width="3"
+              stroke-dasharray="62.83" stroke-dashoffset="62.83" stroke-linecap="round"
+              transform="rotate(-90 14 14)" style="transition:stroke-dashoffset 0.5s,stroke 0.3s"/>
+          </svg>
+          <span id="overall-pct" class="font-extrabold" style="color:var(--text-primary)">0%</span>
+        </div>
+        <div id="judges-completion-wrap" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs" style="background:rgba(255,255,255,0.05);border:1px solid var(--border)">
+          <svg id="judges-ring" width="22" height="22" viewBox="0 0 22 22">
+            <circle cx="11" cy="11" r="7" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2.5"/>
+            <circle id="judges-ring-arc" cx="11" cy="11" r="7" fill="none" stroke="#34d399" stroke-width="2.5"
+              stroke-dasharray="43.98" stroke-dashoffset="43.98" stroke-linecap="round"
+              transform="rotate(-90 11 11)" style="transition:stroke-dashoffset 0.5s"/>
+          </svg>
+          <span id="judges-completion-label" class="font-bold text-xs" style="color:var(--text-secondary)">...</span>
+        </div>
+        <a href="/events/{{event.id}}/results" class="btn-sm btn-sm-green text-xs">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          {{#if readOnly}}View Results{{else}}Live Results{{/if}}
+        </a>
+
+      </div>
+    </div>
+
+    <!-- Row 2: Search + Contestant nav dots -->
+    <div class="px-4 sm:px-6 py-2 space-y-2" style="border-top:1px solid rgba(255,255,255,0.04)">
+
+      {{#if isMultiCategory}}
+      <!-- Category tabs -->
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1">
+        <span class="text-[10px] font-extrabold uppercase tracking-wider flex-shrink-0" style="color:#374151">Category:</span>
+        {{#each categories}}
+        <a href="/events/{{../event.id}}/scoring/{{id}}"
+          class="flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold transition"
+          style="{{#if (eq id ../activeCategoryId)}}background:rgba(99,102,241,0.3);color:#c7d2fe;border:1px solid rgba(99,102,241,0.5){{else}}background:rgba(255,255,255,0.06);color:#64748b;border:1px solid rgba(255,255,255,0.1){{/if}}">
+          {{name}}
+          {{#if scoreCount}}<span class="ml-1 text-[9px] font-black" style="color:#6ee7b7">&#10003;</span>{{/if}}
+        </a>
+        {{/each}}
+      </div>
+      {{/if}}
+      <!-- Search bar -->
+      <div class="relative">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="contestant-search" type="search" autocomplete="off" placeholder="Search contestant by name or number..."
+          class="w-full rounded-xl pl-9 pr-3 py-2 text-xs outline-none"
+          style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--text-primary)"
+          oninput="filterContestants(this.value)"
+        />
+      </div>
+      <!-- Nav dots -->
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5">
+        <span class="text-[10px] font-extrabold uppercase tracking-wider flex-shrink-0 mr-1" style="color:var(--text-faint)">Go to:</span>
+        {{#each contestants}}
+        <button type="button"
+          class="nav-dot flex-shrink-0 min-w-[32px] h-8 px-2 rounded-full text-[11px] font-extrabold transition-all border"
+          data-idx="{{@index}}" data-name="{{name}}" data-number="{{number}}"
+          onclick="goToContestant({{@index}})">{{number}}<span class="nav-dot-pip"></span></button>
+        {{/each}}
+      </div>
+    </div>
+  </div>
+
+  {{#if success_msg}}<div class="alert-success m-4">{{success_msg}}</div>{{/if}}
+  {{#if error_msg}}<div class="alert-error m-4">{{error_msg}}</div>{{/if}}
+
+  {{#if readOnly}}
+  <div class="mx-4 mt-3 rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3 no-print" style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.25)">
+  <div class="text-xs" style="color:#bfdbfe">{{#if isTabulator}}Scoring is locked. Scores are available in read-only mode.{{else}}Event completed. Scores are available in read-only mode.{{/if}}</div>
+    <a href="/events/{{event.id}}/results" class="text-xs font-bold" style="color:#6ee7b7">View event results &rarr;</a>
+  </div>
+  {{/if}}
+
+  {{#if hasExistingScores}}
+  <div class="mx-4 mt-3 rounded-xl px-4 py-3 flex items-start gap-2.5 no-print" style="background:rgba(201,162,39,0.08);border:1px solid rgba(201,162,39,0.25)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c9a227" stroke-width="2" class="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <div class="text-xs" style="color:#f0c040">{{#if readOnly}}Your submitted scores are shown below for review.{{else}}You have previously submitted scores for this event. Your existing scores are shown below &mdash; you can update them and re-submit.{{/if}}</div>
+  </div>
+  {{/if}}
+
+  {{#if contestants.length}}
+  <form id="scoringForm" method="POST" action="/events/{{event.id}}/scoring{{#if activeCategoryId}}/{{activeCategoryId}}{{/if}}" style="width:100%;min-width:0">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+
+    {{#each contestants}}
+    <!-- -- Contestant Panel -- -->
+    <div class="contestant-panel" data-idx="{{@index}}" data-contestant-id="{{id}}">
+
+      <!-- Two-column layout: photo left, scoring right -->
+      <div class="judge-card-inner">
+
+        <!-- -- Left column: Photo -- -->
+        <div class="judge-photo-col">
+          {{#if photo}}
+          <div class="judge-photo-frame">
+            <img src="{{photo}}" alt="{{name}}" style="display:block;width:360px;height:100%;max-width:360px;object-fit:cover;object-position:center top;border:0"/>
+            <!-- Name overlay at bottom -->
+            <div class="judge-photo-overlay">
+              <div class="judge-photo-overlay-name">{{name}}</div>
+              <div class="judge-photo-overlay-num">#{{number}}</div>
+            </div>
+            <!-- Expand button -->
+            <button type="button" class="photo-expand-btn" onclick="openPhotoModal('{{photo}}','{{name}}','{{number}}')" title="View full photo" aria-label="View full photo">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            </button>
+          </div>
+          {{else}}
+          <div class="judge-photo-frame judge-photo-placeholder">
+            <div class="judge-photo-placeholder-icon">
+              <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/><path d="M4 4.5 5.5 6M20 4.5 18.5 6"/></svg>
+            </div>
+            <div class="text-center px-3">
+              <div style="font-size:0.9rem;font-weight:800;color:var(--text-primary)">{{name}}</div>
+              <div style="font-size:0.68rem;font-weight:700;color:var(--text-secondary);margin-top:4px">Contestant #{{number}}</div>
+              <div style="font-size:0.6rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.12em;margin-top:12px">Photo not uploaded</div>
+            </div>
+          </div>
+          {{/if}}
+        </div>
+
+        <!-- -- Right column: Scoring -- -->
+        <div class="judge-scoring-col">
+
+          <!-- Header: crown + judging system label -->
+          <div class="judge-card-eyebrow">
+            <span class="judge-card-eyebrow-dot"></span>
+            <span>Judge evaluation</span>
+          </div>
+
+          <!-- Contestant name + number -->
+          <div class="judge-contestant-heading">
+            <h2>{{name}}</h2>
+            <span>#{{number}}</span>
+          </div>
+
+          <!-- Barangay / age -->
+          <div class="judge-contestant-meta">
+            {{#if barangay}}<span>Brgy. {{barangay}}</span>{{/if}}
+            {{#if age}}<span style="margin-left:6px">&bull; {{age}} yrs</span>{{/if}}
+            {{#if platform}}<span style="margin-left:6px">&bull; {{platform}}</span>{{/if}}
+          </div>
+
+          <!-- Gold divider -->
+          <div class="judge-card-divider"></div>
+
+          <!-- -- Criteria rows (all visible at once) -- -->
+          {{#each scores}}
+          <div class="criteria-panel" data-contestant-id="{{../id}}" data-criteria-idx="{{@index}}">
+
+            <!-- Criteria name row -->
+            <div class="judge-criteria-heading">
+              <span>{{criteriaName}}</span>
+              <span class="judge-weight-badge">{{weight}}%</span>
+            </div>
+
+            <!-- Progress bar + input row -->
+            <div class="judge-score-row">
+              <!-- Progress bar -->
+              <div class="judge-score-track">
+                <div class="criteria-bar"></div>
+              </div>
+              <!-- Visible score input -->
+              <div class="judge-score-entry">
+                <input type="number"
+                  class="score-entry-input"
+                  min="0" max="{{maxScore}}" step="0.01"
+                  placeholder="0"
+                  value="{{value}}"
+                  {{#if ../../readOnly}}readonly aria-readonly="true"{{/if}}
+                  data-max="{{maxScore}}"
+                  oninput="handleScoreInput(this)"
+                />
+                <span>/ {{maxScore}}</span>
+              </div>
+            </div>
+            {{#unless ../../readOnly}}<div class="score-warning-msg" style="display:none;font-size:0.72rem;font-weight:700;margin-top:6px;transition:opacity 0.2s ease"></div>{{/unless}}
+
+            <!-- Hidden elements for JS compatibility (display:none wrapper) -->
+            <div style="display:none">
+              <span class="score-display"></span>
+              <span class="criteria-pct"></span>
+              <span class="criteria-pct-label"></span>
+              <span class="weighted-preview"></span>
+              <svg><circle class="criteria-ring" stroke-dasharray="163.36" stroke-dashoffset="163.36"/></svg>
+              <!-- Actual hidden form input -->
+              <input type="number"
+                name="scores[{{../id}}][{{criteriaId}}]"
+                value="{{value}}"
+                min="0" max="{{maxScore}}" step="0.01"
+                class="score-input sr-only"
+                {{#if ../../readOnly}}readonly{{/if}}
+                data-weight="{{weight}}" data-max="{{maxScore}}"
+                tabindex="-1"/>
+            </div>
+
+          </div>
+          {{/each}}
+
+          <!-- Live total display -->
+          <div class="contestant-total-display">
+            <span class="judge-total-label">Total score</span>
+            <div class="judge-total-value">
+              <span class="contestant-total">0.00%</span>
+              <span class="contestant-fill-label">0/{{scores.length}} filled</span>
+            </div>
+          </div>
+
+          <!-- Overall progress bar (thin) -->
+          <div class="judge-overall-track">
+            <div class="contestant-progress-bar"></div>
+          </div>
+
+          <!-- Remarks textarea (editable) / read-only display -->
+          {{#unless ../readOnly}}
+          <div class="judge-remarks-wrap" style="margin-top:8px">
+            <label class="judge-remarks-label" for="remarks-{{id}}">Remarks <span style="font-weight:500;opacity:0.6">(optional)</span></label>
+            <textarea
+              id="remarks-{{id}}"
+              name="remarks[{{id}}]"
+              maxlength="300"
+              rows="2"
+              placeholder="Short note about this contestant..."
+              class="judge-remarks-textarea"
+            >{{#if (lookup ../../remarksMap id)}}{{lookup ../../remarksMap id}}{{/if}}</textarea>
+          </div>
+          {{else}}
+          {{#if (lookup ../../remarksMap id)}}
+          <div class="judge-remarks-readonly" style="margin-top:8px">
+            <div class="judge-remarks-readonly-label">Judge's Remarks:</div>
+            <div class="judge-remarks-readonly-text">{{lookup ../../remarksMap id}}</div>
+          </div>
+          {{/if}}
+          {{/unless}}
+
+          <!-- SUBMIT button -->
+          {{#unless ../readOnly}}
+          <button type="button"
+            class="submit-btn"
+            onclick="submitContestant({{@index}})">
+            Submit scores
+          </button>
+          {{else}}
+          <div class="py-3 text-center text-xs font-bold rounded-xl" style="background:rgba(255,255,255,0.04);color:var(--text-secondary);border:1px solid var(--border)">Read-only score review</div>
+          {{/unless}}
+
+        </div><!-- /.judge-scoring-col -->
+      </div><!-- /.judge-card-inner -->
+
+    </div>
+    {{/each}}
+
+  </form>
+
+  {{else}}
+  <div class="p-16 text-center">
+    <p style="color:var(--text-faint)">No contestants yet.</p>
+    <a href="/events/{{event.id}}" class="text-indigo-400 text-sm mt-2 inline-block">Back to event</a>
+  </div>
+  {{/if}}
+
+  <!-- Score warning toast -->
+  <div id="score-toast" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:1000;padding:10px 24px;border-radius:999px;font-size:0.8rem;font-weight:700;backdrop-filter:blur(8px);transition:opacity 0.3s ease;white-space:nowrap"></div>
+
+</main>
+</div>
+
+<!-- Sticky bottom nav bar (Prev / Next contestant) -->
+<div class="judge-bottom-nav fixed bottom-0 left-0 right-0 z-30 no-print" style="background:rgba(6,11,24,0.97);backdrop-filter:blur(16px);border-top:1px solid rgba(255,255,255,0.06);box-shadow:0 -4px 32px rgba(0,0,0,0.5)">
+  <div class="judge-bottom-nav-inner max-w-screen-xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
+    <button type="button" id="btn-prev-contestant"
+      class="btn-sm btn-sm-gray disabled:opacity-30"
+      onclick="goToContestant(window._currentIdx - 1)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      Previous
+    </button>
+    <div class="judge-bottom-position flex-1 text-center text-xs font-bold" style="color:var(--text-secondary)">
+      Contestant <span id="bottom-pos" style="color:#e5c45a">1</span> / {{contestants.length}}
+    </div>
+    <button type="button" id="btn-next-contestant"
+      class="btn-sm btn-solid-gold"
+      onclick="goToContestant(window._currentIdx + 1)">
+      Next <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+</div>
+
+<style>
+/* Judge scoring card */
+.contestant-panel {
+  margin: 16px;
+  overflow: hidden;
+  min-width: 0;
+  width: calc(100% - 32px);
+  border: 1px solid rgba(148,163,184,0.16);
+  border-radius: 18px;
+  background: linear-gradient(145deg,#101c30 0%,#0b1424 100%);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.16);
+}
+.judge-top-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 2px;
+  margin-top: 2px;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+.judge-top-meta > span {
+  min-width: 0;
+}
+.judge-top-name {
+  color: #a5b4fc;
+  overflow-wrap: anywhere;
+}
+#hdr-pos {
+  color: #e2e8f0;
+}
+#hdr-scored {
+  color: #6ee7b7;
+}
+.judge-card-inner {
+  display: grid;
+  grid-template-columns: 360px minmax(0,1fr);
+  align-items: stretch;
+  min-width: 0;
+  width: 100%;
+}
+.judge-photo-col {
+  width: 360px;
+  min-width: 360px;
+  max-width: 360px;
+  flex-shrink: 0;
+  padding: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background: rgba(4,10,20,0.3);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.judge-photo-col img {
+  display: block !important;
+  width: 360px !important;
+  height: 100% !important;
+  max-width: 360px !important;
+}
+.judge-photo-frame {
+  position: relative;
+  width: 360px;
+  min-width: 360px;
+  max-width: 360px;
+  height: 100%;
+  min-height: 440px;
+  max-height: unset;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 2px solid rgba(201,162,39,0.4);
+  background: #101827;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(201,162,39,0.1);
+}
+.judge-photo-frame img {
+  display: block !important;
+  width: 360px !important;
+  height: 100% !important;
+  max-width: 360px !important;
+  object-fit: cover;
+  object-position: center top;
+  border: 0;
+}
+/* Name overlay at bottom of photo */
+.judge-photo-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 28px 10px 10px;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 50%, transparent 100%);
+  border-radius: 0 0 14px 14px;
+}
+.judge-photo-overlay-name {
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  overflow-wrap: break-word;
+}
+.judge-photo-overlay-num {
+  color: #e5c45a;
+  font-size: 0.68rem;
+  font-weight: 800;
+  margin-top: 2px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+}
+/* Expand button on photo */
+.photo-expand-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s, background 0.2s;
+  backdrop-filter: blur(4px);
+  z-index: 2;
+}
+.judge-photo-frame:hover .photo-expand-btn {
+  opacity: 1;
+}
+.photo-expand-btn:hover {
+  background: rgba(201,162,39,0.7);
+  border-color: rgba(201,162,39,0.6);
+}
+/* Photo lightbox modal */
+#photo-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0,0,0,0.88);
+  backdrop-filter: blur(6px);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+#photo-modal.open {
+  display: flex;
+}
+#photo-modal-inner {
+  position: relative;
+  max-width: 480px;
+  width: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 2px solid rgba(201,162,39,0.35);
+  box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+  background: #0b1424;
+  animation: modalIn 0.22s ease;
+}
+@keyframes modalIn {
+  from { transform: scale(0.93); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+#photo-modal-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 80vh;
+  object-fit: contain;
+}
+#photo-modal-caption {
+  padding: 12px 16px;
+  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+#photo-modal-caption-name {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+#photo-modal-caption-num {
+  color: #e5c45a;
+  font-size: 0.75rem;
+  font-weight: 800;
+  margin-top: 2px;
+}
+#photo-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  backdrop-filter: blur(4px);
+  transition: background 0.15s;
+  z-index: 3;
+}
+#photo-modal-close:hover {
+  background: rgba(239,68,68,0.6);
+  border-color: rgba(239,68,68,0.4);
+}
+.judge-photo-placeholder {
+  flex-direction: column;
+  gap: 12px;
+  background: linear-gradient(160deg,#17243a,#101827);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 12px;
+  width: 360px;
+  height: 100%;
+  min-height: 440px;
+}
+.judge-photo-placeholder > .text-center {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+}
+.judge-photo-placeholder-icon {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cbd5e1;
+  border: 1px solid rgba(148,163,184,0.2);
+  border-radius: 50%;
+  background: rgba(148,163,184,0.08);
+}
+/* .judge-photo-frame img is defined above in the main block */
+.judge-scoring-col {
+  min-width: 0;
+  padding: 16px 20px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.judge-card-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 7px;
+  color: #94a3b8;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.judge-card-eyebrow-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #c9a227;
+}
+.judge-contestant-heading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-bottom: 4px;
+}
+.judge-contestant-heading h2 {
+  margin: 0;
+  color: #f1f5f9;
+  font-size: 1.15rem;
+  font-weight: 850;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.judge-contestant-heading > span {
+  color: #d6b54a;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+.judge-contestant-meta {
+  min-height: 16px;
+  margin-bottom: 10px;
+  color: #94a3b8;
+  font-size: 0.72rem;
+}
+.judge-card-divider {
+  height: 1px;
+  margin-bottom: 10px;
+  background: rgba(255,255,255,0.08);
+}
+.criteria-panel {
+  margin-bottom: 6px;
+  padding: 8px 12px;
+  border: 1px solid rgba(148,163,184,0.13);
+  border-left: 3px solid transparent;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.025);
+  transition: border-color 0.2s,background 0.2s;
+}
+.criteria-panel:hover {
+  border-color: rgba(148,163,184,0.24);
+  background: rgba(255,255,255,0.04);
+}
+.criteria-panel.has-score {
+  border-left-color: #c9a227;
+}
+.criteria-panel:focus-within {
+  border-color: rgba(201,162,39,0.4);
+  background: rgba(255,255,255,0.04);
+}
+.criteria-panel.has-score:focus-within {
+  border-left-color: #c9a227;
+}
+.judge-criteria-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  color: #e2e8f0;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.judge-weight-badge {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border: 1px solid rgba(201,162,39,0.2);
+  border-radius: 999px;
+  background: rgba(201,162,39,0.1);
+  color: #e5c45a;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+.judge-score-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.judge-score-track, .judge-overall-track {
+  height: 6px;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.07);
+}
+.judge-score-track {
+  flex: 1;
+}
+.judge-score-track .criteria-bar, .judge-overall-track .contestant-progress-bar {
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg,#a17b1c,#d6b54a);
+  transition: width 0.35s ease;
+}
+.judge-score-entry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.judge-score-entry input {
+  width: 64px;
+  height: 36px;
+  min-height: 36px;
+  border: 1px solid rgba(148,163,184,0.24);
+  border-radius: 9px;
+  outline: none;
+  background: #0a1220;
+  color: #f1f5f9;
+  font-size: 15px !important;
+  font-weight: 800;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+.judge-score-entry input:focus {
+  border-color: #c9a227;
+  box-shadow: 0 0 0 3px rgba(201,162,39,0.12);
+}
+.judge-score-entry input::-webkit-inner-spin-button,
+.judge-score-entry input::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+.judge-score-entry > span {
+  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.contestant-total-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+  padding: 8px 0 4px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.judge-total-label {
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.judge-total-value {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.contestant-total {
+  color: #e5c45a;
+  font-size: 1.4rem;
+  font-weight: 850;
+}
+.contestant-fill-label {
+  padding: 3px 8px;
+  border: 1px solid rgba(201,162,39,0.18);
+  border-radius: 999px;
+  background: rgba(201,162,39,0.08);
+  color: #d6b54a;
+  font-size: 0.65rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.judge-overall-track {
+  margin: 2px 0 10px;
+  height: 4px;
+}
+.submit-btn {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 16px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg,#92400e,#c9a227);
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 4px 16px rgba(201,162,39,0.3);
+  transition: opacity 0.18s, transform 0.18s;
+}
+.submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.submit-btn:active { transform: translateY(0); }
+
+/* Mobile / narrow: stack photo on top */
+@media (max-width: 767px) {
+  #scoring-main {
+    padding: 0 0 calc(88px + env(safe-area-inset-bottom)) !important;
+  }
+}
+@media (max-width: 600px) {
+  .judge-top-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .judge-top-info {
+    flex: 1 1 100%;
+  }
+  .judge-top-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  /* Stack photo on top on true mobile */
+  .judge-card-inner {
+    grid-template-columns: 1fr;
+  }
+  .judge-photo-col {
+    width: 100%;
+    max-width: 100%;
+    padding: 12px 14px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    overflow: hidden;
+    align-items: center;
+    justify-content: flex-start;
+    flex-direction: row;
+    gap: 12px;
+  }
+  /* Small photo on mobile — just a card thumbnail */
+  .judge-photo-frame {
+    width: 90px !important;
+    min-width: 90px !important;
+    max-width: 90px !important;
+    height: 120px !important;
+    min-height: 120px !important;
+    max-height: 120px !important;
+    flex-shrink: 0;
+    border-radius: 10px;
+  }
+  .judge-photo-frame img {
+    width: 90px !important;
+    height: 120px !important;
+    max-width: 90px !important;
+    object-position: center top;
+  }
+  .judge-photo-placeholder {
+    width: 90px !important;
+    height: 120px !important;
+    min-height: unset;
+  }
+  /* Hide expand button on mobile photo */
+  .photo-expand-btn { display: none !important; }
+  .judge-scoring-col {
+    padding: 14px 12px;
+  }
+  .contestant-panel {
+    margin: 10px 8px;
+    border-radius: 14px;
+  }
+  .judge-contestant-heading h2 { font-size: 1rem; }
+  .judge-card-eyebrow { margin-bottom: 4px; }
+  .judge-card-divider { margin-bottom: 8px; }
+  .judge-score-entry input {
+    width: 60px;
+  }
+  .judge-bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .judge-bottom-nav-inner {
+    gap: 8px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .judge-bottom-position {
+    min-width: 0;
+    font-size: 0.7rem;
+    white-space: nowrap;
+  }
+}
+@media (max-width: 480px) {
+  .judge-score-entry input {
+    width: 60px;
+    font-size: 15px !important;
+  }
+}
+@media (max-width: 380px) {
+  .judge-bottom-nav-inner {
+    gap: 5px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
+/* Keep navigation feedback responsive without overriding control-specific transitions. */
+.nav-dot {
+  position: relative;
+  background: rgba(255,255,255,0.05);
+  color: var(--text-faint);
+  border-color: rgba(255,255,255,0.08);
+  transition: background 60ms ease, color 60ms ease, border-color 60ms ease, box-shadow 100ms ease;
+  -webkit-tap-highlight-color: transparent;
+  will-change: background, transform;
+}
+.nav-dot.scored {
+  background: rgba(16,185,129,0.25) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(16,185,129,0.5) !important;
+}
+/* Active overrides scored when on the same dot */
+.nav-dot.active-dot {
+  background: #c9a227 !important;
+  color: #0a1628 !important;
+  border-color: #c9a227 !important;
+  box-shadow: 0 0 0 2px rgba(201,162,39,0.35) !important;
+}
+.nav-dot.active-dot .nav-dot-pip {
+  display: block;
+  background: rgba(0,0,0,0.5);
+}
+.nav-dot.partial {
+  background: rgba(245,158,11,0.15) !important;
+  color: #fcd34d !important;
+  border-color: rgba(245,158,11,0.4) !important;
+}
+/* Small white pip indicator inside active dot */
+.nav-dot-pip {
+  display: none;
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #fff;
+  pointer-events: none;
+}
+.nav-dot.active-dot .nav-dot-pip {
+  display: block;
+}
+
+/* -- Responsive: bigger nav dots on mobile (#1) -- */
+@media (max-width: 600px) {
+  .nav-dot {
+    min-width: 40px !important;
+    height: 40px !important;
+    font-size: 0.78rem !important;
+    border-radius: 10px !important;
+  }
+  /* Show label "Go to:" hidden on very small, save space */
+  .judge-nav-label { display: none !important; }
+}
+@media (max-width: 380px) {
+  .nav-dot {
+    min-width: 36px !important;
+    height: 36px !important;
+    font-size: 0.72rem !important;
+  }
+}
+
+/* -- Responsive: score input full-width on mobile (#2) -- */
+@media (max-width: 600px) {
+  .judge-score-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .judge-score-track {
+    width: 100%;
+    height: 10px !important;
+  }
+  .judge-score-entry {
+    justify-content: center;
+    gap: 10px;
+  }
+  .judge-score-entry input {
+    width: 100% !important;
+    max-width: 160px;
+    height: 56px !important;
+    min-height: 56px !important;
+    font-size: 1.5rem !important;
+    border-radius: 14px !important;
+  }
+  .judge-score-entry > span {
+    font-size: 0.85rem !important;
+    font-weight: 700;
+  }
+  .judge-criteria-heading {
+    font-size: 0.95rem !important;
+  }
+}
+/* Hide scrollbars */
+main::-webkit-scrollbar { display:none; }
+
+/* GPU compositing hints */
+#scoring-main { will-change: scroll-position; }
+
+/* Shimmer animation for progress bar fill */
+@keyframes shimmer {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+/* Reveal main after CSS loads &mdash; prevents FOUC (photo flash) */
+#scoring-main { opacity: 1 !important; }
+/* -- Judge Remarks -- */
+.judge-remarks-wrap { margin-top: 8px; }
+.judge-remarks-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.judge-remarks-textarea {
+  width: 100%;
+  background: var(--bg-card, #101c30);
+  color: var(--text-primary, #e2e8f0);
+  border: 1px solid var(--border, rgba(148,163,184,0.2));
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.78rem;
+  font-family: inherit;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.judge-remarks-textarea:focus {
+  border-color: rgba(201,162,39,0.5);
+  box-shadow: 0 0 0 2px rgba(201,162,39,0.1);
+}
+.judge-remarks-textarea::placeholder { color: #374151; }
+.judge-remarks-readonly {
+  margin-top: 8px;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-card, #101c30);
+  color: var(--text-primary, #e2e8f0);
+  border: 1px solid var(--border, rgba(148,163,184,0.2));
+  border-radius: 10px;
+  font-size: 0.75rem;
+}
+.judge-remarks-readonly-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 3px;
+}
+.judge-remarks-readonly-text {
+  color: var(--text-primary, #e2e8f0);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* -- Mobile scoring improvements -- */
+@media (max-width: 767px) {
+  .contestant-panel {
+    margin: 10px 6px !important;
+    width: calc(100% - 12px) !important;
+  }
+  .judge-card-inner {
+    grid-template-columns: 1fr !important;
+  }
+  .judge-photo-col {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: 220px !important;
+    padding: 0 !important;
+    border-right: none !important;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    overflow: hidden;
+    display: flex;
+    align-items: stretch;
+  }
+  .judge-photo-frame {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 220px !important;
+    min-height: 220px !important;
+    max-height: 220px !important;
+    border-radius: 0 !important;
+    border: none !important;
+  }
+  .judge-photo-frame img {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 220px !important;
+  }
+  .judge-photo-placeholder {
+    width: 100% !important;
+    height: 180px !important;
+    min-height: 180px !important;
+    flex-direction: row !important;
+    gap: 16px;
+    padding: 16px !important;
+    border-radius: 0 !important;
+  }
+  .judge-scoring-col {
+    padding: 14px 12px 16px !important;
+  }
+  .judge-score-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 6px !important;
+  }
+  .judge-score-track {
+    width: 100% !important;
+    height: 8px !important;
+  }
+  .judge-score-entry {
+    justify-content: space-between !important;
+    gap: 8px;
+  }
+  .judge-score-entry input.score-entry-input {
+    flex: 1 !important;
+    width: auto !important;
+    max-width: none !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    font-size: 1.3rem !important;
+    border-radius: 12px !important;
+  }
+  .judge-score-entry > span {
+    font-size: 0.85rem !important;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .judge-criteria-heading {
+    font-size: 0.85rem !important;
+  }
+  .submit-btn {
+    min-height: 52px !important;
+    font-size: 0.88rem !important;
+  }
+  .judge-remarks-textarea {
+    font-size: 0.85rem !important;
+    padding: 0.6rem 0.75rem !important;
+  }
+  .judge-bottom-nav {
+    padding-bottom: max(env(safe-area-inset-bottom), 8px);
+  }
+}
+</style>
+
+<script>
+(function() {
+  const CIRC10 = 2 * Math.PI * 10; // r=10 ? 62.83
+  const storeKey = "scoresync_draft_{{event.id}}_{{judgeId}}";
+  let saveTimer;
+  window._currentIdx = 0;
+  window._currentCriteria = {}; // kept for compatibility, not used for display
+  window._hasExistingScores = {{#if hasExistingScores}}true{{else}}false{{/if}};
+  const totalContestants = {{contestants.length}};
+
+  /* -- Pre-fill visible inputs from existing hidden values -- */
+  document.querySelectorAll('.criteria-panel').forEach(panel => {
+    const input   = panel.querySelector('.score-input');
+    const entryEl = panel.querySelector('.score-entry-input');
+    if (!entryEl || !input) return;
+    if (input.value) {
+      entryEl.value = input.value;
+      updateBox(panel);
+    }
+  });
+
+  /* -- Handle score text input -- */
+  window.handleScoreInput = function(entryEl) {
+    const panel  = entryEl.closest('.criteria-panel');
+    const input  = panel.querySelector('.score-input');
+    const max    = parseFloat(entryEl.dataset.max) || 100;
+    let val      = parseFloat(entryEl.value);
+
+    if (isNaN(val) || entryEl.value === '') {
+      input.value = '';
+      entryEl.style.borderColor = 'rgba(201,162,39,0.4)';
+      entryEl.style.boxShadow = '';
+      // Clear inline warning
+      var warnMsg = panel.querySelector('.score-warning-msg');
+      if (warnMsg) warnMsg.style.display = 'none';
+      updateBox(panel);
+      schedSave();
+      return;
+    }
+    if (val < 0) val = 0;
+    if (val > max) {
+      val = max;
+      entryEl.value = max;
+      entryEl.style.borderColor = 'rgba(239,68,68,0.6)';
+      entryEl.style.boxShadow = '';
+    } else {
+      entryEl.style.borderColor = 'rgba(201,162,39,0.7)';
+      entryEl.style.boxShadow = '';
+    }
+    input.value = val;
+    updateBox(panel);
+    schedSave();
+
+    // Low score warning (not in read-only mode)
+    if (entryEl.readOnly) return;
+    var warnDiv = panel.querySelector('.score-warning-msg');
+    if (val < 50) {
+      entryEl.style.borderColor = 'rgba(239,68,68,0.8)';
+      entryEl.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.15)';
+      if (warnDiv) {
+        warnDiv.textContent = '?? Score is critically low! Are you sure?';
+        warnDiv.style.color = '#fca5a5';
+        warnDiv.style.display = 'block';
+      }
+      showScoreToast('?? Score is critically low! Are you sure?', 'critical');
+    } else if (val < 75) {
+      entryEl.style.borderColor = 'rgba(245,158,11,0.8)';
+      entryEl.style.boxShadow = '0 0 0 3px rgba(245,158,11,0.15)';
+      if (warnDiv) {
+        warnDiv.textContent = '?? Score is below average (below 75)';
+        warnDiv.style.color = '#fcd34d';
+        warnDiv.style.display = 'block';
+      }
+      showScoreToast('?? Score is below average (below 75)', 'warning');
+    } else {
+      entryEl.style.borderColor = 'rgba(201,162,39,0.4)';
+      entryEl.style.boxShadow = '';
+      if (warnDiv) warnDiv.style.display = 'none';
+    }
+  };
+
+  /* -- updateBox: update progress bar + totals -- */
+  function updateBox(panel) {
+    const input  = panel.querySelector('.score-input');
+    const val    = parseFloat(input.value) || 0;
+    const max    = parseFloat(input.dataset.max) || 100;
+    const weight = parseFloat(input.dataset.weight) || 0;
+    const pct    = max > 0 ? (val / max) * 100 : 0;
+    const contrib = (val / max) * weight;
+
+    // Gold progress bar
+    const bar = panel.querySelector('.criteria-bar');
+    if (bar) { bar.style.width = pct.toFixed(1) + '%'; }
+
+    // Toggle filled state accent
+    panel.classList.toggle('has-score', val > 0);
+
+    // Hidden compat elements
+    const disp = panel.querySelector('.score-display');
+    if (disp) disp.textContent = val > 0 ? val : '--';
+    const pctEl = panel.querySelector('.criteria-pct');
+    if (pctEl) pctEl.textContent = Math.round(pct) + '%';
+    const pctLbl = panel.querySelector('.criteria-pct-label');
+    if (pctLbl) pctLbl.textContent = Math.round(pct) + '%';
+    const wp = panel.querySelector('.weighted-preview');
+    if (wp) wp.textContent = contrib.toFixed(2) + '%';
+
+    updateContestantPanel(panel.closest('.contestant-panel'));
+    updateOverallRing();
+  }
+
+  /* -- Contestant panel totals -- */
+  function updateContestantPanel(cp) {
+    if (!cp) return;
+    const panels = cp.querySelectorAll('.criteria-panel');
+    let total = 0, filled = 0;
+    panels.forEach(p => {
+      const n = p.querySelector('.score-input');
+      if (!n) return;
+      const v = parseFloat(n.value) || 0;
+      const m = parseFloat(n.dataset.max) || 100;
+      const w = parseFloat(n.dataset.weight) || 0;
+      if (v > 0) filled++;
+      total += (v / m) * w;
+    });
+    const totEl = cp.querySelector('.contestant-total');
+    if (totEl) totEl.textContent = total.toFixed(2) + '%';
+    const lbl = cp.querySelector('.contestant-fill-label');
+    if (lbl) lbl.textContent = filled + '/' + panels.length + ' filled';
+    const bar = cp.querySelector('.contestant-progress-bar');
+    if (bar) {
+      const pct = panels.length > 0 ? (filled / panels.length) * 100 : 0;
+      bar.style.width = pct + '%';
+      bar.style.background = filled === panels.length
+        ? 'linear-gradient(90deg,#10b981,#34d399)'
+        : 'linear-gradient(90deg,#8b6914,#c9a227,#f0c040)';
+    }
+    // Nav dot
+    const dot = document.querySelector('.nav-dot[data-idx="' + cp.dataset.idx + '"]');
+    if (dot && filled === panels.length && panels.length > 0) dot.classList.add('scored');
+    // Update header scored count
+    let totalScored = 0;
+    document.querySelectorAll('.contestant-panel').forEach(c => {
+      const ps = c.querySelectorAll('.criteria-panel');
+      const f  = [...ps].filter(p => {
+        const n = p.querySelector('.score-input');
+        return n && parseFloat(n.value) > 0;
+      }).length;
+      if (f === ps.length && ps.length > 0) totalScored++;
+    });
+    const sc = document.getElementById('hdr-scored');
+    if (sc) sc.textContent = totalScored;
+  }
+
+  /* -- Overall ring -- */
+  function updateOverallRing() {
+    const all    = document.querySelectorAll('.score-input');
+    const filled = [...all].filter(i => parseFloat(i.value) > 0).length;
+    const pct    = all.length > 0 ? (filled / all.length) * 100 : 0;
+    const offset = CIRC10 - (pct / 100) * CIRC10;
+    const ring   = document.getElementById('ring-progress');
+    if (ring) { ring.style.strokeDashoffset = offset.toFixed(2); ring.style.stroke = pct >= 100 ? '#10b981' : '#c9a227'; }
+    const el = document.getElementById('overall-pct');
+    if (el) el.textContent = Math.round(pct) + '%';
+  }
+
+  /* -- Search / filter contestants -- */
+  window.filterContestants = function(query) {
+    const q = query.trim().toLowerCase();
+    const dots = document.querySelectorAll('.nav-dot');
+    if (!q) {
+      // Show current contestant, restore all dots
+      dots.forEach(d => { d.style.display = ''; });
+      return;
+    }
+    let firstMatch = -1;
+    dots.forEach(d => {
+      const name   = (d.dataset.name   || '').toLowerCase();
+      const number = (d.dataset.number || '').toLowerCase();
+      const matches = name.includes(q) || number.includes(q);
+      d.style.display = matches ? '' : 'none';
+      if (matches && firstMatch < 0) firstMatch = parseInt(d.dataset.idx);
+    });
+    if (firstMatch >= 0) goToContestant(firstMatch);
+  };
+
+  /* -- Navigate contestants -- */
+  window.goToContestant = function(idx) {
+    idx = parseInt(idx);
+    if (isNaN(idx) || idx < 0 || idx >= totalContestants) return;
+    document.querySelectorAll('.contestant-panel').forEach((p, i) => p.style.display = i === idx ? '' : 'none');
+    document.querySelectorAll('.nav-dot').forEach((d, i) => {
+      d.classList.toggle('active-dot', i === idx);
+    });
+    window._currentIdx = idx;
+    document.getElementById('hdr-pos').textContent    = idx + 1;
+    document.getElementById('bottom-pos').textContent = idx + 1;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    updateOverallRing();
+  };
+
+  /* -- nextOrSave &mdash; kept for compatibility -- */
+  window.nextOrSave = function(cid, panelIdx, total) {
+    submitContestant(panelIdx);
+  };
+
+  /* -- submitContestant -- */
+  window.submitContestant = async function(panelIdx) {
+    const cp = document.querySelector('.contestant-panel[data-idx="' + panelIdx + '"]');
+    const inputs = cp ? cp.querySelectorAll('.score-input') : [];
+    const empty = [...inputs].filter(n => !n.value || parseFloat(n.value) < 0);
+    if (empty.length > 0) {
+      // Highlight empty fields
+      empty.forEach(n => {
+        const panel = n.closest('.criteria-panel');
+        const entryEl = panel ? panel.querySelector('.score-entry-input') : null;
+        if (entryEl) entryEl.style.borderColor = 'rgba(239,68,68,0.8)';
+      });
+      const _ok = await window.ssConfirm({ title: 'Empty Scores', message: empty.length + ' score(s) are empty. Submit anyway? Empty scores will count as 0.', ok: 'Submit Anyway', cancel: 'Go Back', type: 'warning' });
+    if (!_ok) return;
+    }
+    try { localStorage.removeItem(storeKey); } catch(e) {}
+    // Save next contestant index so we auto-jump after page reload
+    const nextIdx = panelIdx + 1;
+    if (nextIdx < totalContestants) {
+      try { localStorage.setItem('ss_next_contestant_' + '{{event.id}}', nextIdx); } catch(e) {}
+    }
+    // Check if this is the last contestant being scored — count already-scored panels
+    var _alreadyScored = 0;
+    document.querySelectorAll('.contestant-panel').forEach(function(panel, pIdx) {
+      if (pIdx === panelIdx) return; // the current one being submitted counts as scoring now
+      var panelInputs = panel.querySelectorAll('.score-input');
+      var allFilled = panelInputs.length > 0 && [...panelInputs].every(function(n) { return n.value && parseFloat(n.value) > 0; });
+      if (allFilled) _alreadyScored++;
+    });
+    if (_alreadyScored + 1 >= totalContestants) {
+      try { localStorage.setItem('ss_show_complete_{{event.id}}', '1'); } catch(e) {}
+    }
+    document.getElementById('scoringForm').submit();
+  };
+
+  window.nextContestant = function(idx) { goToContestant(idx + 1); };
+
+  /* -- Low score toast notification -- */
+  var _toastTimer = null;
+  window.showScoreToast = function(msg, type) {
+    var t = document.getElementById('score-toast');
+    if (!t) return;
+    clearTimeout(_toastTimer);
+    t.textContent = msg;
+    if (type === 'critical') {
+      t.style.background = 'rgba(239,68,68,0.15)';
+      t.style.border = '1px solid rgba(239,68,68,0.3)';
+      t.style.color = '#fca5a5';
+    } else {
+      t.style.background = 'rgba(245,158,11,0.1)';
+      t.style.border = '1px solid rgba(245,158,11,0.3)';
+      t.style.color = '#fcd34d';
+    }
+    t.style.display = 'block';
+    t.style.opacity = '1';
+    _toastTimer = setTimeout(function() {
+      t.style.opacity = '0';
+      setTimeout(function(){ t.style.display = 'none'; }, 300);
+    }, 3000);
+  };
+
+  /* -- Draft save/restore -- */
+  function schedSave() { clearTimeout(saveTimer); saveTimer = setTimeout(saveDraft, 600); }
+  function saveDraft() {
+    const data = {};
+    document.querySelectorAll('.contestant-panel').forEach(cp => {
+      const cid = cp.dataset.contestantId; data[cid] = {};
+      cp.querySelectorAll('.score-input').forEach(n => {
+        const m = n.name.match(/scores\[([^\]]+)\]\[([^\]]+)\]/);
+        if (m) data[cid][m[2]] = n.value;
+      });
+    });
+    try { localStorage.setItem(storeKey, JSON.stringify(data)); } catch(e){}
+  }
+  function restoreDraft() {
+    try {
+      const data = JSON.parse(localStorage.getItem(storeKey) || '{}');
+      document.querySelectorAll('.criteria-panel').forEach(panel => {
+        const cid   = panel.dataset.contestantId;
+        const input = panel.querySelector('.score-input');
+        if (!input || !data[cid]) return;
+        const m = input.name.match(/scores\[([^\]]+)\]\[([^\]]+)\]/);
+        if (m && data[cid][m[2]] && input.value === '') {
+          input.value = data[cid][m[2]];
+          const entryEl = panel.querySelector('.score-entry-input');
+          if (entryEl) entryEl.value = data[cid][m[2]];
+        }
+      });
+    } catch(e){}
+  }
+
+  /* -- Init -- */
+  restoreDraft();
+  document.querySelectorAll('.criteria-panel').forEach(p => {
+    // Sync: if score-entry-input has a pre-filled value from server, push it to score-input
+    const entryEl = p.querySelector('.score-entry-input');
+    const input   = p.querySelector('.score-input');
+    if (entryEl && input && entryEl.value && !input.value) {
+      input.value = entryEl.value;
+    }
+    // If score-input has value but entry doesn't, fill entry
+    if (input && entryEl && input.value && !entryEl.value) {
+      entryEl.value = input.value;
+    }
+    updateBox(p);
+  });
+
+  // Mark all nav dots that are fully scored on initial load
+  document.querySelectorAll('.contestant-panel').forEach(cp => {
+    const panels = cp.querySelectorAll('.criteria-panel');
+    if (!panels.length) return;
+    const filled = [...panels].filter(p => {
+      const n = p.querySelector('.score-input');
+      return n && parseFloat(n.value) > 0;
+    }).length;
+    const dot = document.querySelector('.nav-dot[data-idx="' + cp.dataset.idx + '"]');
+    if (dot) {
+      if (filled === panels.length) {
+        dot.classList.add('scored');
+      } else if (filled > 0) {
+        dot.classList.add('partial');
+      }
+    }
+  });
+  goToContestant(0);
+
+  // Auto-jump to next contestant after submit
+  (function() {
+    var nextKey = 'ss_next_contestant_' + '{{event.id}}';
+    try {
+      var nextIdx = localStorage.getItem(nextKey);
+      if (nextIdx !== null) {
+        localStorage.removeItem(nextKey);
+        var idx = parseInt(nextIdx);
+        if (!isNaN(idx) && idx > 0 && idx < totalContestants) {
+          goToContestant(idx);
+          return;
+        }
+      }
+    } catch(e) {}
+  })();
+
+  // Show complete modal if all contestants were just scored
+  (function() {
+    try {
+      var _cmKey = 'ss_show_complete_{{event.id}}';
+      if (localStorage.getItem(_cmKey) === '1') {
+        localStorage.removeItem(_cmKey);
+        var _cm = document.getElementById('complete-modal');
+        if (_cm) _cm.style.display = 'flex';
+      }
+    } catch(e) {}
+  })();
+
+  // Auto-close sidebar on mobile
+  if (window.innerWidth < 768) {
+    var sidebar = document.querySelector('.sidebar');
+    var overlay = document.getElementById('sidebar-overlay');
+    if (sidebar) { sidebar.classList.remove('open'); }
+    if (overlay) { overlay.classList.add('hidden'); }
+  }
+
+  /* -- Photo modal -- */
+  window.openPhotoModal = function(src, name, number) {
+    var modal = document.getElementById('photo-modal');
+    var img   = document.getElementById('photo-modal-img');
+    var capName = document.getElementById('photo-modal-caption-name');
+    var capNum  = document.getElementById('photo-modal-caption-num');
+    if (!modal || !img) return;
+    img.src = src;
+    img.alt = name;
+    if (capName) capName.textContent = name;
+    if (capNum)  capNum.textContent  = '#' + number;
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  };
+  window.closePhotoModal = function(e) {
+    if (e && e.target !== document.getElementById('photo-modal') && e.target !== document.getElementById('photo-modal-close')) return;
+    var modal = document.getElementById('photo-modal');
+    if (modal) modal.style.display = 'none';
+    document.body.style.overflow = '';
+  };
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      var modal = document.getElementById('photo-modal');
+      if (modal) modal.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+  });
+})();
+</script>
+
+
+</body>
+
+
+<!-- -- Photo Fullscreen Modal -- -->
+<div id="photo-modal" role="dialog" aria-modal="true" aria-label="Full photo view" style="display:none" onclick="closePhotoModal(event)">
+  <div id="photo-modal-inner">
+    <button id="photo-modal-close" onclick="closePhotoModal()" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <img id="photo-modal-img" src="" alt=""/>
+    <div id="photo-modal-caption">
+      <div id="photo-modal-caption-name"></div>
+      <div id="photo-modal-caption-num"></div>
+    </div>
+  </div>
+</div>
+
+<!-- -- All Scores Complete Modal -- -->
+{{#if showCompleteModal}}
+<div id="complete-modal" style="display:flex;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px">
+  <div style="position:relative;max-width:420px;width:100%;border-radius:24px;overflow:hidden;border:2px solid rgba(201,162,39,0.4);box-shadow:0 24px 80px rgba(0,0,0,0.7),0 0 40px rgba(201,162,39,0.15);background:linear-gradient(145deg,#101c30,#0b1424);animation:modalIn 0.3s ease;text-align:center;padding:40px 32px 32px" id="complete-modal-inner">
+    <!-- Floating orbs -->
+    <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none">
+      <div style="position:absolute;width:8px;height:8px;border-radius:50%;background:#c9a227;top:12%;left:15%;animation:confetti1 2s ease infinite"></div>
+      <div style="position:absolute;width:6px;height:6px;border-radius:50%;background:#6ee7b7;top:20%;right:18%;animation:confetti2 2.4s ease infinite"></div>
+      <div style="position:absolute;width:5px;height:5px;border-radius:50%;background:#a78bfa;bottom:25%;left:12%;animation:confetti3 1.8s ease infinite"></div>
+      <div style="position:absolute;width:7px;height:7px;border-radius:50%;background:#f0c040;bottom:18%;right:14%;animation:confetti1 2.2s ease infinite 0.3s"></div>
+      <div style="position:absolute;width:5px;height:5px;border-radius:50%;background:#6ee7b7;top:35%;left:8%;animation:confetti2 1.9s ease infinite 0.5s"></div>
+      <div style="position:absolute;width:6px;height:6px;border-radius:50%;background:#c9a227;top:30%;right:10%;animation:confetti3 2.1s ease infinite 0.2s"></div>
+    </div>
+    <!-- Trophy -->
+    <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#92400e,#d97706);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 32px rgba(201,162,39,0.4)">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+    </div>
+    <div style="font-size:0.7rem;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:#c9a227;margin-bottom:8px">All Categories Completed</div>
+    <h2 style="font-size:1.6rem;font-weight:900;color:#f1f5f9;margin:0 0 10px;line-height:1.2">Scoring Complete! ??</h2>
+    <p style="font-size:0.85rem;color:#94a3b8;margin:0 0 20px;line-height:1.6">You have successfully scored all {{contestants.length}} contestants.</p>
+    <div style="background:rgba(255,255,255,0.055);border-radius:12px;padding:14px 18px;margin-bottom:24px;text-align:left;font-size:0.8rem;color:#94a3b8">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="color:#64748b">Judge</span>
+        <span style="color:#e2e8f0;font-weight:700">{{userName}}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="color:#64748b">Event</span>
+        <span style="color:#e2e8f0;font-weight:700">{{event.name}}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <span style="color:#64748b">Contestants scored</span>
+        <span style="color:#e2e8f0;font-weight:700">{{contestants.length}}</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <a href="/events/{{event.id}}/results" class="btn-sm btn-solid-green">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        View Results
+      </a>
+      <button onclick="window.location.href='/dashboard'" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:12px;background:rgba(255,255,255,0.07);color:#94a3b8;font-weight:700;font-size:0.85rem;border:1px solid rgba(255,255,255,0.1);cursor:pointer">
+        Back to Dashboard
+      </button>
+    </div>
+  </div>
+</div>
+<style>
+@keyframes confetti1 { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-12px) scale(1.2)} }
+@keyframes confetti2 { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-8px) rotate(180deg)} }
+@keyframes confetti3 { 0%,100%{transform:scale(1) rotate(0deg)} 50%{transform:scale(1.3) rotate(90deg)} }
+</style>
+<script>
+// closeCompleteModal removed — modal is not dismissable by outside click
+</script>
+{{/if}}
+
+</html>
+

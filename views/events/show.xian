@@ -1,0 +1,1658 @@
+{{> head }}
+<body class="min-h-screen flex flex-col ss-page-bg">
+{{> navbar }}
+<div class="flex flex-1 overflow-hidden">
+{{> sidebar }}
+<main class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
+
+  {{#if success_msg}}<div class="alert-success animate-fadeup"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg><span>{{{success_msg}}}</span></div>{{/if}}
+  {{#if error_msg}}<div class="alert-error animate-fadeup"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>{{error_msg}}</div>{{/if}}
+
+  {{#if event.parentEventId}}
+  <div class="rounded-xl px-4 py-3 flex items-center gap-3 animate-fadeup" style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    <span style="font-size:0.82rem;color:#a5b4fc">Part of event series: <a href="/events/{{event.parentEventId}}" style="font-weight:700;color:#818cf8">{{event.parentEventName}}</a></span>
+  </div>
+  {{/if}}
+
+  <!-- Hero card -->
+  <div class="card-flat overflow-hidden animate-fadeup">
+    <div class="px-7 py-6 relative overflow-hidden" style="background:{{themeGradient event.theme}}">
+      {{#if event.coverPhoto}}
+      <img src="{{event.coverPhoto}}" alt="{{event.name}}" class="absolute inset-0 w-full h-full object-cover" style="opacity:0.3"/>
+      <div class="absolute inset-0" style="background:linear-gradient(to bottom,rgba(0,0,0,0.15),rgba(0,0,0,0.6))"></div>
+      {{/if}}
+      <div class="absolute top-0 right-0 w-48 h-48 rounded-full translate-x-16 -translate-y-16" style="background:rgba(255,255,255,0.05)"></div>
+      <div class="relative">
+        <div class="breadcrumb mb-3" style="color:rgba(147,197,253,0.8)">
+          {{#if parentEventId}}
+          <a href="/events/{{parentEventId}}" style="color:rgba(147,139,250,0.9)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            Back to {{parentEventName}}
+          </a>
+          {{else}}
+          <a href="/events" style="color:rgba(147,197,253,0.9)">Back to All Events</a>
+          {{/if}}
+        </div>
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h1 class="text-white text-2xl font-extrabold tracking-tight mb-2">{{event.name}}</h1>
+            <div class="flex flex-wrap gap-4 text-blue-200 text-sm">
+              {{#if event.venue}}<span class="flex items-center gap-1.5"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>{{event.venue}}</span>{{/if}}
+              {{#if event.date}}<span class="flex items-center gap-1.5"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>{{event.date}}{{#if event.time}} at {{event.time}}{{/if}}</span>{{/if}}
+              <span class="capitalize flex items-center gap-1.5"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>{{#if (eq event.type 'other')}}{{#if event.otherType}}{{event.otherType}}{{else}}Other{{/if}}{{else}}{{event.type}}{{/if}}</span>
+              {{#if event.organizer}}<span class="flex items-center gap-1.5"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>{{event.organizer}}</span>{{/if}}
+            </div>
+            {{#if event.description}}<p class="text-blue-100 text-sm mt-3 max-w-2xl leading-relaxed">{{event.description}}</p>{{/if}}
+          </div>
+          <span class="flex-shrink-0 mt-1 {{#if (eq event.status 'ongoing')}}badge-premium-green{{else}}{{#if (eq event.status 'completed')}}badge-premium-blue{{else}}{{#if (eq event.status 'cancelled')}}badge-premium-red{{else}}badge-premium-yellow{{/if}}{{/if}}{{/if}}">
+            <svg width="7" height="7" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="4"/></svg>
+            {{event.status}}
+          </span>
+          {{#if event.votingOpen}}<span class="badge-premium-green flex-shrink-0 mt-1 ml-1">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            Voting Open
+          </span>{{else}}<span class="badge-premium-gray flex-shrink-0 mt-1 ml-1">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            Voting Off
+          </span>{{/if}}
+        </div>
+      </div>
+    </div>
+    <!-- Action toolbar -->
+    <div class="px-4 py-3 flex flex-wrap items-center gap-2" style="border-top:1px solid var(--border);background:rgba(255,255,255,0.03);position:relative;overflow:visible;z-index:20">
+      {{#if isAdmin}}
+
+      <!-- Primary actions &mdash; always visible -->
+      {{#if (eq event.status 'upcoming')}}
+      <form method="POST" action="/events/{{event.id}}/status" class="inline">
+        <input type="hidden" name="_csrf" value="{{csrfToken}}">
+        <input type="hidden" name="status" value="ongoing">
+        <button type="submit" class="btn-sm btn-solid-green">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> Start Event
+        </button>
+      </form>
+      {{/if}}
+      {{#if (eq event.status 'ongoing')}}
+      <form method="POST" action="/events/{{event.id}}/status" style="display:contents" onsubmit="return false" data-confirm-title="End Event" data-confirm-msg="Manually mark this event as completed? This will lock all scoring." data-confirm-ok="End Event" data-confirm-type="warning">
+        <input type="hidden" name="_csrf" value="{{csrfToken}}">
+        <input type="hidden" name="status" value="completed">
+        <button type="submit" class="btn-sm btn-solid-blue" style="height:34px;min-height:unset;display:inline-flex;align-items:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> End Event</button>
+      </form>
+      {{/if}}
+      {{#if (eq event.status 'completed')}}
+      <form id="reopen-event-form" method="POST" action="/events/{{event.id}}/status" class="hidden">
+        <input type="hidden" name="_csrf" value="{{csrfToken}}">
+        <input type="hidden" name="status" value="ongoing">
+      </form>
+      <button type="submit" form="reopen-event-form" class="btn-sm btn-sm-gray">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Re-open
+      </button>
+      {{/if}}
+
+      {{#unless event.isEventSeries}}
+      <a href="/events/{{event.id}}/contestants/add" class="btn-sm btn-sm-blue">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg> Add Participant
+      </a>
+      {{/unless}}
+      {{#unless event.isEventSeries}}
+      <a href="/events/{{event.id}}/results" class="btn-sm btn-sm-green">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Results
+      </a>
+      {{/unless}}
+      {{#if event.isEventSeries}}
+      <a href="/events/{{event.id}}/series-results" class="btn-sm btn-sm-purple text-xs">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Overall Results
+      </a>
+      {{/if}}
+
+      <!-- More dropdown -->
+      <div class="relative" id="admin-more-wrap">
+        <button type="button" onclick="toggleDropdown('admin-more', this)" class="btn-sm btn-sm-gray">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          More
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
+
+      {{/if}}{{#if isJudge}}
+      <a href="/events/{{event.id}}/scoring" class="btn-sm btn-sm-purple">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Score This Event
+      </a>
+      {{#unless event.isEventSeries}}
+      <a href="/events/{{event.id}}/results" class="btn-sm btn-sm-green">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Results
+      </a>
+      {{/unless}}
+      {{#if event.isEventSeries}}
+      <a href="/events/{{event.id}}/series-results" class="btn-sm btn-sm-purple text-xs">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Overall Results
+      </a>
+      {{/if}}
+      {{/if}}{{#if isTabulator}}
+      {{#unless event.isEventSeries}}
+      <a href="/events/{{event.id}}/results" class="btn-sm btn-sm-green">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> View Result
+      </a>
+      {{/unless}}
+      {{#if event.isEventSeries}}
+      <a href="/events/{{event.id}}/series-results" class="btn-sm btn-sm-purple text-xs">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Overall Results
+      </a>
+      {{/if}}
+      {{/if}}{{#if isEncoder}}
+      {{#unless event.isEventSeries}}
+      <a href="/events/{{event.id}}/contestants/add" class="btn-sm btn-sm-blue">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg> Add Participant
+      </a>
+      {{/unless}}
+      {{#unless event.isEventSeries}}
+      <a href="/events/{{event.id}}/results" class="btn-sm btn-sm-green">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Results
+      </a>
+      {{/unless}}
+      {{/if}}{{#if isOrganizer}}
+
+      <!-- Organizer primary actions -->
+      {{#if (eq event.status 'upcoming')}}
+      <form method="POST" action="/events/{{event.id}}/status" class="inline">
+        <input type="hidden" name="_csrf" value="{{csrfToken}}">
+        <input type="hidden" name="status" value="ongoing">
+        <button type="submit" class="btn-sm btn-solid-green">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> Start Event
+        </button>
+      </form>
+      {{/if}}
+      {{#if (eq event.status 'ongoing')}}
+      <form method="POST" action="/events/{{event.id}}/status" style="display:contents" onsubmit="return false" data-confirm-title="End Event" data-confirm-msg="Manually mark this event as completed? This will lock all scoring." data-confirm-ok="End Event" data-confirm-type="warning">
+        <input type="hidden" name="_csrf" value="{{csrfToken}}">
+        <input type="hidden" name="status" value="completed">
+        <button type="submit" class="btn-sm btn-solid-blue" style="height:34px;min-height:unset;display:inline-flex;align-items:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> End Event</button>
+      </form>
+      {{/if}}
+      {{#if (eq event.status 'completed')}}
+      <form method="POST" action="/events/{{event.id}}/status" class="inline">
+        <input type="hidden" name="_csrf" value="{{csrfToken}}">
+        <input type="hidden" name="status" value="ongoing">
+        <button type="submit" class="btn-sm btn-sm-gray">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Re-open
+        </button>
+      </form>
+      {{/if}}
+
+      {{#unless event.isEventSeries}}
+      <a href="/events/{{event.id}}/contestants/add" class="btn-sm btn-sm-blue">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg> Add Participant
+      </a>
+      {{/unless}}
+      {{#unless event.isEventSeries}}
+      <a href="/events/{{event.id}}/results" class="btn-sm btn-sm-green">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Results
+      </a>
+      {{/unless}}
+      {{#if event.isEventSeries}}
+      <a href="/events/{{event.id}}/series-results" class="btn-sm btn-sm-purple text-xs">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Overall Results
+      </a>
+      {{/if}}
+
+      <!-- Organizer More dropdown -->
+      <div class="relative" id="org-more-wrap">
+        <button type="button" onclick="toggleDropdown('org-more', this)" class="btn-sm btn-sm-gray">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          More
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
+
+      {{/if}}
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-5 animate-fadeup-1">
+    {{#if event.isEventSeries}}
+    <!-- Grouped participants by sub-event (series parent only, read-only, no Add button) -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Participants by Sub-Event
+        </h2>
+        <!-- No Add button for series parent -->
+      </div>
+      {{#each subEvents}}
+      <div class="px-4 py-3" style="border-top:1px solid var(--border)">
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs font-extrabold uppercase tracking-widest" style="color:var(--text-muted)">{{name}}</span>
+            <span class="badge {{#if (eq status 'ongoing')}}badge-green{{else}}{{#if (eq status 'completed')}}badge-blue{{else}}{{#if (eq status 'cancelled')}}badge-red{{else}}badge-yellow{{/if}}{{/if}}{{/if}} capitalize text-[10px]">{{status}}</span>
+            <span class="badge badge-gray text-[10px]">{{contestants.length}} participants</span>
+          </div>
+          <a href="/events/{{id}}/results" class="btn-sm btn-sm-green text-xs flex-shrink-0">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            View Results
+          </a>
+        </div>
+        {{#if contestants.length}}
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+          {{#each contestants}}
+          <div class="rounded-xl p-3 text-center" style="background:var(--bg-card-sub);border:1px solid var(--border)">
+            {{#if photo}}
+            <img src="{{photo}}" class="w-12 h-12 rounded-full object-cover mx-auto mb-2" alt="{{name}}"/>
+            {{else}}
+            <div class="w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center text-white font-black" style="background:linear-gradient(135deg,#1e3a8a,#4f46e5)">{{number}}</div>
+            {{/if}}
+            <div class="text-xs font-bold" style="color:var(--text-primary)">{{name}}</div>
+            <div class="text-[10px]" style="color:var(--text-faint)">#{{number}}</div>
+          </div>
+          {{/each}}
+        </div>
+        {{else}}
+        <p class="text-xs" style="color:var(--text-faint)">No participants yet</p>
+        {{/if}}
+      </div>
+      {{else}}
+      <div class="px-6 py-8 text-center" style="color:var(--text-faint)">No sub-events added yet.</div>
+      {{/each}}
+    </div>
+    {{else}}
+    <!-- Normal non-series events: existing contestants section unchanged -->
+    <!-- Contestants -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Participants <span class="ml-1.5 bg-blue-100 text-blue-600 text-xs font-bold px-2 py-0.5 rounded-full">{{contestants.length}}</span></h2>
+        {{#if isAdmin}}<a href="/events/{{event.id}}/contestants/add" class="btn-primary btn-sm text-xs px-3 py-1.5"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add</a>{{/if}}
+        {{#if isOrganizer}}<a href="/events/{{event.id}}/contestants/add" class="btn-primary btn-sm text-xs px-3 py-1.5"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add</a>{{/if}}
+      </div>
+      {{#if contestants.length}}
+      <div class="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3" data-stagger="fm-scale-in">
+        {{#each contestants}}
+        <div class="group contestant-card"
+          style="border:1px solid var(--border)">
+          <!-- Photo or premium placeholder -->
+          {{#if photo}}
+          <img src="{{photo}}" alt="{{name}}"
+            class="absolute inset-0 w-full h-full object-cover"
+            style="object-position:center top" loading="lazy"/>
+          {{else}}
+          <div class="contestant-initials-placeholder">
+            <div class="contestant-number-badge">{{number}}</div>
+          </div>
+          {{/if}}
+
+          <!-- Gradient overlay always -->
+          <div class="absolute inset-0" style="background:linear-gradient(0deg,rgba(10,20,60,0.75) 0%,rgba(10,20,60,0.15) 45%,transparent 70%)"></div>
+
+          <!-- Number badge top-left -->
+          <div class="absolute top-2 left-2">
+            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-white text-xs font-extrabold shadow-md border border-white/30" style="background:rgba(37,99,235,0.85)">{{number}}</span>
+          </div>
+
+          <!-- Admin/Organizer actions top-right -->
+          {{#if ../isAdmin}}
+          <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <a href="/events/{{../event.id}}/contestants/{{id}}/edit"
+              class="btn-icon no-min-h" title="Edit">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </a>
+            <form method="POST" action="/events/{{../event.id}}/contestants/{{id}}/delete" class="inline" onsubmit="return false" data-confirm-title="Remove Contestant" data-confirm-msg="Remove this contestant from the event? This cannot be undone." data-confirm-ok="Remove" data-confirm-type="danger">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+              <button class="btn-icon no-min-h" title="Delete">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+              </button>
+            </form>
+          </div>
+          {{/if}}
+          {{#if ../isOrganizer}}
+          <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <a href="/events/{{../event.id}}/contestants/{{id}}/edit"
+              class="btn-icon no-min-h" title="Edit">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </a>
+            <form method="POST" action="/events/{{../event.id}}/contestants/{{id}}/delete" class="inline" onsubmit="return false" data-confirm-title="Remove Contestant" data-confirm-msg="Remove this contestant from the event? This cannot be undone." data-confirm-ok="Remove" data-confirm-type="danger">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+              <button class="btn-icon no-min-h" title="Delete">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+              </button>
+            </form>
+          </div>
+          {{/if}}
+
+          <!-- Name & details bottom -->
+          <div class="absolute bottom-0 left-0 right-0 px-3 py-3">
+            <div class="text-white font-extrabold text-sm leading-tight truncate">{{name}}</div>
+            <div class="text-white/70 text-[11px] mt-0.5 truncate">
+              {{#if barangay}}Brgy. {{barangay}}{{/if}}{{#if age}} &bull; {{age}} yrs{{/if}}
+            </div>
+            {{#if platform}}
+            <div class="mt-1.5">
+              <span class="inline-block bg-blue-500/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full truncate max-w-full">{{platform}}</span>
+            </div>
+            {{/if}}
+            {{#if registrationFee}}
+            <div class="mt-1">
+              <span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold px-2 py-0.5 rounded-full" style="background:rgba(16,185,129,0.55);color:#fff">&#8369;{{registrationFee}}</span>
+            </div>
+            {{/if}}
+            {{#if submissionLink}}
+            <div class="mt-1">
+              <a href="{{submissionLink}}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:rgba(99,102,241,0.5);color:#e0e7ff" onclick="event.stopPropagation()">?? View Submission</a>
+            </div>
+            {{/if}}
+          </div>
+        </div>
+        {{/each}}
+      </div>
+      {{else}}
+      <div class="py-10 text-center text-slate-400 text-sm">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#e2e8f0" stroke-width="1.5" class="mx-auto mb-3"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        No participants added yet.
+      </div>
+      {{/if}}
+    </div>
+    {{/if}}
+
+    {{#unless event.isEventSeries}}
+    <!-- Criteria -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Scoring Criteria
+          {{#if categories.length}}<span class="ml-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(99,102,241,0.15);color:#a5b4fc;border:1px solid rgba(99,102,241,0.25)">{{categories.length}} categories</span>
+          {{else}}{{#if criteria.length}}<span class="ml-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(139,92,246,0.15);color:#c4b5fd;border:1px solid rgba(139,92,246,0.25)">{{criteria.length}} criteria</span>{{/if}}{{/if}}
+        </h2>
+        {{#if isAdmin}}<a href="/events/{{event.id}}/categories" class="btn-sm btn-sm-blue text-xs px-3 py-1.5">Multi-Category</a>
+        <a href="/events/{{event.id}}/criteria" class="btn-sm btn-sm-purple text-xs px-3 py-1.5">Criteria</a>{{/if}}
+        {{#if isOrganizer}}<a href="/events/{{event.id}}/categories" class="btn-sm btn-sm-blue text-xs px-3 py-1.5">Multi-Category</a>
+        <a href="/events/{{event.id}}/criteria" class="btn-sm btn-sm-purple text-xs px-3 py-1.5">Criteria</a>{{/if}}
+      </div>
+
+      {{#if categories.length}}
+      <!-- -- Multi-category tabs -- -->
+      <div class="px-4 pt-3 pb-1 flex gap-1.5 overflow-x-auto" style="border-bottom:1px solid var(--border-subtle)">
+        {{#each categories}}
+        <button type="button" onclick="showCategory('cat-{{id}}')"
+          id="tab-{{id}}"
+          class="cat-tab flex-shrink-0 px-3 py-1.5 rounded-xl text-[11px] font-bold transition whitespace-nowrap"
+          style="background:rgba(99,102,241,0.1);color:#a5b4fc;border:1px solid rgba(99,102,241,0.2)">
+          {{order}}. {{name}}
+        </button>
+        {{/each}}
+      </div>
+      <!-- Category criteria panels -->
+      {{#each categories}}
+      <div id="cat-{{id}}" class="cat-panel hidden p-4 space-y-2.5">
+        {{#each criteria}}
+        <div class="rounded-xl p-3.5" style="background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle)">
+          <div class="flex items-start justify-between gap-3 mb-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-white text-[10px] font-extrabold"
+                style="background:linear-gradient(135deg,#4c1d95,#7c3aed)">{{add1 @index}}</div>
+              <div class="font-bold text-sm" style="color:var(--text-primary)">{{name}}</div>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="criteria-weight-badge">{{weight}}%</span>
+              <span class="text-[10px] font-semibold px-2 py-1 rounded-full" style="background:rgba(255,255,255,0.05);color:var(--text-muted);border:1px solid var(--border)">max {{maxScore}}</span>
+            </div>
+          </div>
+          <div class="h-1.5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.06)">
+            <div class="h-full rounded-full" style="width:{{weight}}%;background:linear-gradient(90deg,#7c3aed,#a855f7)"></div>
+          </div>
+        </div>
+        {{/each}}
+        <div class="flex items-center justify-between px-1 pt-1">
+          <span class="text-[11px]" style="color:var(--text-faint)">Total weight</span>
+          <span class="text-xs font-extrabold" style="color:#c4b5fd">100%</span>
+        </div>
+      </div>
+      {{/each}}
+      <script>
+        function showCategory(id) {
+          document.querySelectorAll('.cat-panel').forEach(p => p.classList.add('hidden'));
+          document.querySelectorAll('.cat-tab').forEach(t => {
+            t.style.background = 'rgba(99,102,241,0.1)';
+            t.style.color = '#a5b4fc';
+            t.style.borderColor = 'rgba(99,102,241,0.2)';
+          });
+          var panel = document.getElementById(id);
+          if (panel) panel.classList.remove('hidden');
+          var tab = document.getElementById('tab-' + id.replace('cat-',''));
+          if (tab) { tab.style.background='rgba(99,102,241,0.3)'; tab.style.color='#c7d2fe'; tab.style.borderColor='rgba(99,102,241,0.6)'; }
+        }
+        // Show first category by default
+        (function(){
+          var first = document.querySelector('.cat-panel');
+          var firstTab = document.querySelector('.cat-tab');
+          if (first) first.classList.remove('hidden');
+          if (firstTab) { firstTab.style.background='rgba(99,102,241,0.3)'; firstTab.style.color='#c7d2fe'; firstTab.style.borderColor='rgba(99,102,241,0.6)'; }
+        })();
+      </script>
+
+      {{else}}
+      {{#if criteria.length}}
+      <div class="p-4 space-y-2.5">
+        {{#each criteria}}
+        <div class="rounded-xl p-3.5 transition" style="background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle)"
+          onmouseover="this.style.background='rgba(139,92,246,0.05)';this.style.borderColor='rgba(139,92,246,0.2)'"
+          onmouseout="this.style.background='rgba(255,255,255,0.02)';this.style.borderColor='rgba(255,255,255,0.06)'">
+          <div class="flex items-start justify-between gap-3 mb-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-white text-[10px] font-extrabold"
+                style="background:linear-gradient(135deg,#4c1d95,#7c3aed)">{{add1 @index}}</div>
+              <div class="min-w-0">
+                <div class="font-bold text-sm leading-tight" style="color:var(--text-primary)">{{name}}</div>
+                {{#if description}}<div class="text-[11px] mt-0.5 truncate" style="color:var(--text-muted)">{{description}}</div>{{/if}}
+              </div>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="criteria-weight-badge">{{weight}}%</span>
+              <span class="text-[10px] font-semibold px-2 py-1 rounded-full" style="background:rgba(255,255,255,0.05);color:var(--text-muted);border:1px solid var(--border)">max {{maxScore}}</span>
+            </div>
+          </div>
+          <div class="h-1.5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.06)">
+            <div class="h-full rounded-full" style="width:{{weight}}%;background:linear-gradient(90deg,#7c3aed,#a855f7);transition:width 80ms ease"></div>
+          </div>
+        </div>
+        {{/each}}
+        <div class="flex items-center justify-between px-1 pt-1">
+          <span class="text-[11px]" style="color:var(--text-faint)">Total weight</span>
+          <span class="text-xs font-extrabold" style="color:#c4b5fd">100%</span>
+        </div>
+      </div>
+      {{else}}
+      <div class="py-10 text-center">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3" style="background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.15)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <p class="text-sm font-semibold mb-1" style="color:var(--text-primary)">No criteria defined</p>
+        {{#if isAdmin}}<a href="/events/{{event.id}}/criteria" class="text-xs font-bold" style="color:#a78bfa">Set up scoring criteria &rarr;</a>{{/if}}
+        {{#if isOrganizer}}<a href="/events/{{event.id}}/criteria" class="text-xs font-bold" style="color:#a78bfa">Set up scoring criteria &rarr;</a>{{/if}}
+      </div>
+      {{/if}}
+      {{/if}}
+    </div>
+    {{/unless}}
+  </div>
+
+  <!-- -- Audit Trail &mdash; admin/organizer only -- -->
+  {{#if isAdmin}}
+  {{#if auditLog.length}}
+  <div class="section-card animate-fadeup-2">
+    <div class="section-header">
+      <h2>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="19" x2="11" y2="19"/></svg>
+        Score Submission Audit Trail
+        <span class="ml-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(16,185,129,0.12);color:#34d399;border:1px solid rgba(16,185,129,0.2)">{{auditLog.length}} entries</span>
+      </h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Judge</th>
+            <th>Action</th>
+            <th>Scores Submitted</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each auditLog}}
+          <tr>
+            <td>
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style="background:linear-gradient(135deg,#4c1d95,#7c3aed)">
+                  {{#if judgeName}}{{judgeName.[0]}}{{else}}J{{/if}}
+                </div>
+                <span class="text-sm font-semibold" style="color:var(--text-primary)">{{judgeName}}</span>
+              </div>
+            </td>
+            <td>
+              <span class="badge badge-green text-[10px]">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Scores Submitted
+              </span>
+            </td>
+            <td class="text-sm font-bold" style="color:var(--text-primary)">{{scoreCount}} score(s)</td>
+            <td class="text-xs" style="color:var(--text-muted)">{{timestampStr}}</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {{/if}}
+  {{/if}}
+
+  <!-- -- Stage Timer &mdash; only visible when event is ongoing -- -->
+  <div id="event-meta"
+    data-event-id="{{event.id}}"
+    data-event-date="{{event.date}}"
+    data-event-time="{{event.time}}"
+    data-event-end-time="{{event.endTime}}"
+    data-event-status="{{event.status}}"
+    style="display:none"></div>
+  {{#if (eq event.status 'ongoing')}}
+  {{#unless isEncoder}}
+  <div class="animate-fadeup-1">
+    <!-- Timer toggle button -->
+    <button type="button" id="timer-toggle-btn" onclick="toggleStageTimer()"
+      class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition mb-3"
+      style="background:rgba(99,102,241,0.1);color:#a5b4fc;border:1px solid rgba(99,102,241,0.25)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span id="timer-toggle-label">Show Stage Timer</span>
+      <svg id="timer-toggle-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transition:transform 0.2s"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <!-- Timer body &mdash; hidden by default -->
+    <div id="stage-timer-wrapper" class="hidden">
+      {{> countdown_timer }}
+    </div>
+  </div>
+  <script>
+    function toggleStageTimer() {
+      const wrapper  = document.getElementById('stage-timer-wrapper');
+      const label    = document.getElementById('timer-toggle-label');
+      const chevron  = document.getElementById('timer-toggle-chevron');
+      const isHidden = wrapper.classList.contains('hidden');
+      wrapper.classList.toggle('hidden', !isHidden);
+      label.textContent   = isHidden ? 'Hide Stage Timer' : 'Show Stage Timer';
+      chevron.style.transform = isHidden ? 'rotate(180deg)' : '';
+    }
+  </script>
+  {{/unless}}
+  {{/if}}
+
+  {{#if event.prizes}}
+  {{#if event.isPrizeType}}
+  <div class="grid lg:grid-cols-2 gap-5 animate-fadeup-2">
+    <div class="section-card">
+      <div class="section-header"><h2><svg width="14" height="14" viewBox="0 0 24 24" fill="#f59e0b"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>Prizes &amp; Awards</h2></div>
+      <div class="px-5 py-4 text-sm whitespace-pre-line leading-relaxed" style="color:var(--text-secondary)">{{event.prizes}}</div>
+    </div>
+    {{#if event.rules}}
+    <div class="section-card">
+      <div class="section-header"><h2><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>Rules &amp; Mechanics</h2></div>
+      <div class="px-5 py-4 text-sm whitespace-pre-line leading-relaxed" style="color:var(--text-secondary)">{{event.rules}}</div>
+    </div>
+    {{/if}}
+  </div>
+  {{/if}}
+  {{/if}}
+
+  {{#if event.notes}}
+  <div class="section-card animate-fadeup-2">
+    <div class="section-header"><h2><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Additional Notes</h2></div>
+    <div class="px-5 py-4 text-sm whitespace-pre-line leading-relaxed" style="color:var(--text-secondary)">{{event.notes}}</div>
+  </div>
+  {{/if}}
+
+  <!-- Payment QR Code Card &mdash; only for paid event types that have a QR uploaded -->
+  {{#if event.paymentQR}}
+  {{#if event.isPaymentType}}
+  <div class="section-card animate-fadeup-2" style="border-color:rgba(16,185,129,0.3)">
+    <div class="section-header" style="background:rgba(16,185,129,0.08)">
+      <h2>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Payment QR Code
+        {{#if event.paymentMethod}}<span class="ml-2 badge badge-green text-[10px]">{{event.paymentMethod}}</span>{{/if}}
+      </h2>
+      <a href="/events/{{event.id}}/edit" class="btn-sm btn-sm-gray text-xs">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Edit
+      </a>
+    </div>
+    <div class="px-6 py-6 flex flex-col sm:flex-row items-center gap-6">
+      <!-- QR Image -->
+      <div class="flex-shrink-0 p-3 rounded-2xl shadow-sm" style="background:#fff;border:1px solid rgba(16,185,129,0.2)">
+        <img src="{{event.paymentQR}}" alt="Payment QR Code" class="rounded-xl" style="width:160px;height:160px;object-fit:contain"/>
+      </div>
+      <!-- Details -->
+      <div class="flex-1 space-y-3 text-center sm:text-left">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide" style="color:var(--text-muted)">How to Pay</p>
+          <p class="text-sm mt-1 leading-relaxed" style="color:var(--text-secondary)">Scan the QR code using your <span class="font-bold" style="color:#34d399">{{#if event.paymentMethod}}{{event.paymentMethod}}{{else}}payment app{{/if}}</span> to send your payment directly.</p>
+        </div>
+        {{#if event.paymentAccountName}}
+        <div class="flex items-center gap-2 text-sm">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span style="color:var(--text-muted)">Account Name:</span>
+          <span class="font-bold" style="color:var(--text-primary)">{{event.paymentAccountName}}</span>
+        </div>
+        {{/if}}
+        {{#if event.paymentAccountNumber}}
+        <div class="flex items-center gap-2 text-sm">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          <span style="color:var(--text-muted)">Account No.:</span>
+          <span class="font-bold font-mono tracking-wide" style="color:var(--text-primary)">{{event.paymentAccountNumber}}</span>
+        </div>
+        {{/if}}
+        <div class="flex gap-2 pt-1 justify-center sm:justify-start flex-wrap">
+          <a href="{{event.paymentQR}}" download="payment-qr-{{event.id}}.png" class="btn-sm btn-sm-green text-xs">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download QR
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{/if}}
+  {{/if}}
+
+  <!-- Event URL QR Code Card &mdash; only show when a payment QR has been uploaded -->
+  {{#if event.paymentQR}}
+  {{#if event.isPaymentType}}
+  {{#if canManageFinance}}
+  <div class="section-card animate-fadeup-2">
+    <div class="section-header">
+      <h2>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="5" y="5" width="3" height="3" fill="#7c3aed"/><rect x="16" y="5" width="3" height="3" fill="#7c3aed"/><rect x="16" y="16" width="3" height="3" fill="#7c3aed"/><rect x="5" y="16" width="3" height="3" fill="#7c3aed"/></svg>
+        Event QR Code
+      </h2>
+      <button onclick="downloadQR()" class="btn-sm btn-sm-purple text-xs px-3 py-1.5">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download
+      </button>
+    </div>
+    <div class="px-6 py-6 flex flex-col sm:flex-row items-center gap-6">
+      <div class="flex-shrink-0 p-3 rounded-2xl shadow-sm" style="background:#fff;border:1px solid rgba(255,255,255,0.1)">
+        <canvas id="event-qr-canvas" width="160" height="160"></canvas>
+      </div>
+      <div class="flex-1 space-y-2 text-center sm:text-left">
+        <p class="font-bold text-sm" style="color:var(--text-primary)">{{event.name}}</p>
+        <p class="text-xs leading-relaxed" style="color:var(--text-muted)">Scan this QR code to open the event page directly. Share it with judges, encoders, and participants for instant access.</p>
+        <div class="mt-2 px-3 py-2 rounded-lg text-xs font-mono break-all" id="qr-url-display" style="background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text-secondary)"></div>
+        <div class="flex gap-2 pt-1 justify-center sm:justify-start flex-wrap">
+          <button onclick="copyEventUrl()" class="btn-sm btn-sm-gray text-xs">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy URL
+          </button>
+          <button onclick="downloadQR()" class="btn-sm btn-sm-purple text-xs">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download QR
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{/if}}
+  {{/if}}{{!-- /event.isPaymentType --}}
+  {{/if}}{{!-- /event.paymentQR --}}
+
+  <!-- -----------------------------------------------
+       EVENT INCOME & EXPENSE TRACKER
+       ----------------------------------------------- -->
+  {{#if canManageFinance}}
+  {{#if event.isPaymentType}}
+  {{#if finance.entries.length}}
+  <div id="finance" class="animate-fadeup-2">
+
+    <!-- KPI summary row -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+
+      <!-- Total Income -->
+      <div class="rounded-2xl px-5 py-5 relative overflow-hidden"
+        style="background:linear-gradient(135deg,#064e3b,#059669);border:1px solid rgba(16,185,129,0.3);box-shadow:0 6px 24px rgba(5,150,105,0.25)">
+        <div class="absolute -right-4 -bottom-4 w-20 h-20 rounded-full" style="background:rgba(255,255,255,0.06)"></div>
+        <div class="relative">
+          <div class="text-[10px] font-extrabold uppercase tracking-widest mb-1" style="color:rgba(110,231,183,0.7)">Total Income</div>
+          <div class="text-2xl font-black text-white">&#8369;{{finance.totalIncome}}</div>
+          <div class="text-xs mt-1" style="color:rgba(110,231,183,0.6)">All income entries</div>
+        </div>
+      </div>
+
+      <!-- Total Expenses -->
+      <div class="rounded-2xl px-5 py-5 relative overflow-hidden"
+        style="background:linear-gradient(135deg,#7f1d1d,#dc2626);border:1px solid rgba(239,68,68,0.3);box-shadow:0 6px 24px rgba(220,38,38,0.2)">
+        <div class="absolute -right-4 -bottom-4 w-20 h-20 rounded-full" style="background:rgba(255,255,255,0.06)"></div>
+        <div class="relative">
+          <div class="text-[10px] font-extrabold uppercase tracking-widest mb-1" style="color:rgba(252,165,165,0.7)">Total Expenses</div>
+          <div class="text-2xl font-black text-white">&#8369;{{finance.totalExpense}}</div>
+          <div class="text-xs mt-1" style="color:rgba(252,165,165,0.6)">All expense entries</div>
+        </div>
+      </div>
+
+      <!-- Net Balance -->
+      <div class="rounded-2xl px-5 py-5 relative overflow-hidden"
+        style="{{#if finance.isProfit}}background:linear-gradient(135deg,#1e3a8a,#2563eb);border:1px solid rgba(99,102,241,0.35);box-shadow:0 6px 24px rgba(37,99,235,0.25){{else}}background:linear-gradient(135deg,#4c1d95,#7c3aed);border:1px solid rgba(139,92,246,0.35);box-shadow:0 6px 24px rgba(124,58,237,0.25){{/if}}">
+        <div class="absolute -right-4 -bottom-4 w-20 h-20 rounded-full" style="background:rgba(255,255,255,0.06)"></div>
+        <div class="relative">
+          <div class="text-[10px] font-extrabold uppercase tracking-widest mb-1" style="color:rgba(165,180,252,0.7)">Net Balance</div>
+          <div class="text-2xl font-black text-white flex items-center gap-2">
+            {{#if finance.isProfit}}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            {{else}}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fca5a5" stroke-width="2.5"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+            {{/if}}
+            &#8369;{{finance.netBalance}}
+          </div>
+          <div class="text-xs mt-1" style="color:rgba(165,180,252,0.6)">{{#if finance.isProfit}}Surplus / Profit{{else}}Deficit / Loss{{/if}}</div>
+        </div>
+      </div>
+
+    </div>
+
+    {{#if canManageFinance}}
+    <!-- Income Breakdown Donut Chart -->
+    <div class="rounded-2xl overflow-hidden mb-4" style="background:var(--bg-card);border:1px solid var(--border)">
+      <div class="px-5 py-3.5" style="border-bottom:1px solid rgba(255,255,255,0.06)">
+        <h2 class="text-sm font-extrabold flex items-center gap-2" style="color:var(--text-primary)">
+          <span class="w-6 h-6 rounded-lg flex items-center justify-center" style="background:rgba(16,185,129,0.15)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg></span>
+          Income Breakdown by Category
+        </h2>
+      </div>
+      <div class="p-5 flex flex-col sm:flex-row items-center gap-6">
+        <div style="width:160px;height:160px;flex-shrink:0">
+          <svg id="income-donut-svg" viewBox="0 0 160 160" width="160" height="160" style="transform:rotate(-90deg)">
+            <circle cx="80" cy="80" r="54" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="22"/>
+          </svg>
+        </div>
+        <div id="income-donut-legend" class="flex flex-wrap gap-x-5 gap-y-2"></div>
+      </div>
+    </div>
+    <script>
+    (function(){
+      var data = {{{financeEntriesJson}}};
+      var incomeEntries = data.filter(function(e){ return e.type === "income"; });
+      var el = document.getElementById("income-donut-svg");
+      var lg = document.getElementById("income-donut-legend");
+      if(!el||!lg||!incomeEntries.length){ if(el) el.closest(".rounded-2xl").style.display="none"; return; }
+      var COLORS=["#34d399","#60a5fa","#f59e0b","#a78bfa","#f87171","#38bdf8"];
+      var byCategory={};
+      incomeEntries.forEach(function(e){ var c=e.category||"other"; byCategory[c]=(byCategory[c]||0)+Number(e.amount||0); });
+      var cats=Object.keys(byCategory).filter(function(k){ return byCategory[k]>0; });
+      var total=cats.reduce(function(s,k){ return s+byCategory[k]; },0);
+      if(total<=0){ el.closest(".rounded-2xl").style.display="none"; return; }
+      var r=54, circ=2*Math.PI*r, offset=0;
+      cats.forEach(function(cat,i){
+        var val=byCategory[cat], frac=val/total, segLen=frac*circ;
+        var color=COLORS[i%COLORS.length];
+        var c=document.createElementNS("http://www.w3.org/2000/svg","circle");
+        c.setAttribute("cx","80"); c.setAttribute("cy","80"); c.setAttribute("r",r);
+        c.setAttribute("fill","none"); c.setAttribute("stroke",color); c.setAttribute("stroke-width","22");
+        c.setAttribute("stroke-dasharray",segLen+" "+(circ-segLen));
+        var fo=circ-((offset/total)*circ);
+        c.setAttribute("stroke-dashoffset",circ);
+        c.style.transition="stroke-dashoffset 0.9s ease "+(i*0.1)+"s";
+        c.dataset.fo=fo; el.appendChild(c);
+        offset+=val;
+        var li=document.createElement("div");
+        li.style.cssText="display:flex;align-items:center;gap:6px;font-size:12px";
+        li.innerHTML='<span style="width:10px;height:10px;border-radius:2px;background:'+color+'"></span>'
+          +'<span style="color:var(--text-primary);font-weight:600">'+(cat.charAt(0).toUpperCase()+cat.slice(1))+'</span>'
+          +'<span style="color:var(--text-faint)">&#8369;'+val.toFixed(2)+'</span>';
+        lg.appendChild(li);
+      });
+      requestAnimationFrame(function(){ el.querySelectorAll("circle[data-fo]").forEach(function(c){ c.style.strokeDashoffset=c.dataset.fo; }); });
+    })();
+    </script>
+    {{/if}}
+    <!-- Main finance card -->
+    <div class="rounded-2xl overflow-hidden" style="background:var(--bg-card);border:1px solid var(--border)">
+
+      <!-- Header -->
+      <div class="px-6 py-4 flex items-center justify-between" style="border-bottom:1px solid var(--border-subtle);background:rgba(255,255,255,0.02)">
+        <h2 class="text-sm font-extrabold flex items-center gap-2" style="color:var(--text-primary)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Income &amp; Expense Log
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold" style="background:rgba(16,185,129,0.15);color:#6ee7b7;border:1px solid rgba(16,185,129,0.25)">{{finance.entries.length}} entries</span>
+        </h2>
+        {{#if canManageFinance}}
+        <button onclick="toggleFinanceForm()" class="btn-sm btn-sm-green text-xs">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Entry
+        </button>
+        {{/if}}
+      </div>
+
+      <!-- Add Entry Form (admin + organizer, collapsible) -->
+      {{#if canManageFinance}}
+      <div id="finance-form-wrap" class="hidden" style="border-bottom:1px solid var(--border-subtle);background:rgba(99,102,241,0.04)">
+        <form method="POST" action="/events/{{event.id}}/finance" class="px-6 py-5">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+            <!-- Type toggle -->
+            <div>
+              <label class="block text-[10px] font-extrabold uppercase tracking-widest mb-2" style="color:#4b5563">Type</label>
+              <input type="hidden" name="type" id="fin-type-val" value="income"/>
+              <div class="grid grid-cols-2 gap-1.5">
+                <button type="button" id="fin-income-btn" onclick="setFinType('income')"
+                  class="py-2 rounded-xl text-xs font-extrabold transition"
+                  style="background:rgba(16,185,129,0.2);color:#6ee7b7;border:2px solid rgba(16,185,129,0.4)">
+                  ? Income
+                </button>
+                <button type="button" id="fin-expense-btn" onclick="setFinType('expense')"
+                  class="py-2 rounded-xl text-xs font-extrabold transition"
+                  style="background:rgba(255,255,255,0.05);color:var(--text-muted);border:2px solid rgba(255,255,255,0.08)">
+                  ? Expense
+                </button>
+              </div>
+            </div>
+
+            <!-- Category -->
+            <div>
+              <label class="block text-[10px] font-extrabold uppercase tracking-widest mb-2" style="color:#4b5563">Category</label>
+              <select name="category" id="fin-category" class="form-input-bare w-full text-xs">
+                <optgroup label="Income" style="background:#1e293b">
+                  <option value="registration">Registration Fee</option>
+                  <option value="ticket">Ticket Sales</option>
+                  <option value="sponsorship">Sponsorship</option>
+                  <option value="donation">Donation</option>
+                  <option value="merchandise">Merchandise</option>
+                  <option value="grant">LGU Grant / Budget</option>
+                </optgroup>
+                <optgroup label="Expense" style="background:#1e293b">
+                  <option value="venue">Venue / Hall Rental</option>
+                  <option value="sound">Sound System / AV</option>
+                  <option value="prizes-exp">Prizes / Trophies</option>
+                  <option value="logistics">Logistics / Transport</option>
+                  <option value="catering">Food / Catering</option>
+                  <option value="decorations">Decorations / Props</option>
+                  <option value="marketing">Marketing / Printing</option>
+                  <option value="staff">Staff / Labor</option>
+                  <option value="other-exp">Other Expense</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <!-- Amount -->
+            <div>
+              <label class="block text-[10px] font-extrabold uppercase tracking-widest mb-2" style="color:#4b5563">Amount (&#8369;) <span style="color:#ef4444">*</span></label>
+              <input type="number" name="amount" placeholder="0.00" min="0.01" step="0.01" required class="form-input-bare w-full"/>
+            </div>
+
+            <!-- Description -->
+            <div>
+              <label class="block text-[10px] font-extrabold uppercase tracking-widest mb-2" style="color:#4b5563">Description</label>
+              <input type="text" name="description" placeholder="e.g. 10 teams &mdash; &#8369;500" class="form-input-bare w-full"/>
+            </div>
+
+          </div>
+          <div class="flex gap-2 mt-4">
+            <button type="submit" class="btn-primary text-sm px-6">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Save Entry
+            </button>
+            <button type="button" onclick="toggleFinanceForm()" class="btn-secondary text-sm px-5">Cancel</button>
+          </div>
+        </form>
+      </div>
+      {{/if}}
+
+      <!-- Entries table -->
+      {{#if finance.entries.length}}
+      <div class="overflow-x-auto">
+        <table class="data-table w-full">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th class="text-right">Amount</th>
+              {{#if isAdmin}}<th></th>{{/if}}
+            </tr>
+          </thead>
+          <tbody>
+            {{#each finance.entries}}
+            <tr>
+              <td>
+                {{#if (eq type 'income')}}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold" style="background:rgba(16,185,129,0.15);color:#6ee7b7;border:1px solid rgba(16,185,129,0.25)">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                  Income
+                </span>
+                {{else}}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+                  Expense
+                </span>
+                {{/if}}
+              </td>
+              <td><span class="badge badge-gray capitalize text-[11px]">{{category}}</span></td>
+              <td class="text-sm" style="color:var(--text-secondary)">{{#if description}}{{description}}{{else}}<span style="color:#1f2937">&mdash;</span>{{/if}}</td>
+              <td class="text-right font-extrabold text-sm" style="color:{{#if (eq type 'income')}}#6ee7b7{{else}}#fca5a5{{/if}}">
+                {{#if (eq type 'income')}}+{{else}}-{{/if}}&#8369;{{amount}}
+              </td>
+              {{#if ../isAdmin}}
+              <td class="text-right">
+                <form method="POST" action="/events/{{../event.id}}/finance/{{id}}/delete" class="inline" onsubmit="return false" data-confirm-title="Remove Entry" data-confirm-msg="Delete this finance entry? This cannot be undone." data-confirm-ok="Delete" data-confirm-type="danger">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+                  <button class="btn-sm btn-sm-red text-xs px-2.5 py-1.5">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                  </button>
+                </form>
+              </td>
+              {{/if}}
+            </tr>
+            {{/each}}
+          </tbody>
+          <!-- Running totals footer -->
+          <tfoot>
+            <tr style="border-top:2px solid rgba(16,185,129,0.2)">
+              <td colspan="3" class="px-5 py-3 text-xs font-extrabold uppercase tracking-widest text-right" style="color:#4b5563">Total Income</td>
+              <td class="px-5 py-3 text-right font-black text-sm" style="color:#6ee7b7">+&#8369;{{finance.totalIncome}}</td>
+              {{#if isAdmin}}<td></td>{{/if}}
+            </tr>
+            <tr style="border-top:1px solid rgba(239,68,68,0.15)">
+              <td colspan="3" class="px-5 py-3 text-xs font-extrabold uppercase tracking-widest text-right" style="color:#4b5563">Total Expenses</td>
+              <td class="px-5 py-3 text-right font-black text-sm" style="color:#fca5a5">-&#8369;{{finance.totalExpense}}</td>
+              {{#if isAdmin}}<td></td>{{/if}}
+            </tr>
+            <tr style="border-top:2px solid rgba(99,102,241,0.25)">
+              <td colspan="3" class="px-5 py-3 text-xs font-extrabold uppercase tracking-widest text-right" style="color:#4b5563">Net Balance</td>
+              <td class="px-5 py-3 text-right font-black text-base" style="color:{{#if finance.isProfit}}#a5b4fc{{else}}#f9a8d4{{/if}}">
+                {{#if finance.isProfit}}+{{else}}-{{/if}}&#8369;{{finance.netBalance}}
+              </td>
+              {{#if isAdmin}}<td></td>{{/if}}
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      {{else}}
+      <!-- Empty state -->
+      <div class="py-14 text-center">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:rgba(16,185,129,0.10);border:1px solid rgba(16,185,129,0.15)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="1.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <p class="font-bold text-sm mb-1" style="color:var(--text-primary)">No finance entries yet</p>
+        <p class="text-xs mb-5" style="color:var(--text-faint)">Track registration fees, sponsorships, expenses, and more.</p>
+        {{#if canManageFinance}}
+        <button onclick="toggleFinanceForm()" class="btn-sm btn-sm-green">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add First Entry
+        </button>
+        {{/if}}
+      </div>
+      {{/if}}
+
+    </div><!-- /finance card -->
+  </div><!-- /finance section -->
+  {{/if}}{{!-- /finance.entries.length --}}
+  {{/if}}{{!-- /event.isPaymentType --}}
+  {{/if}}{{!-- /canManageFinance --}}
+
+  {{#if event.isEventSeries}}
+  <div class="card-flat animate-fadeup">
+    <div class="px-6 py-4 flex items-center justify-between" style="border-bottom:1px solid var(--border)">
+      <h2 class="font-bold" style="color:var(--text-primary)">Sub-Events ({{subEvents.length}})</h2>
+      {{#if isAdmin}}{{#unless (eq event.status 'cancelled')}}
+      <a href="/events/create?parentEventId={{event.id}}" class="btn-sm btn-solid-blue">+ Add Sub-Event</a>
+      {{/unless}}{{/if}}
+      {{#if isOrganizer}}{{#unless (eq event.status 'cancelled')}}
+      <a href="/events/create?parentEventId={{event.id}}" class="btn-sm btn-solid-blue">+ Add Sub-Event</a>
+      {{/unless}}{{/if}}
+    </div>
+    <div class="p-4 grid sm:grid-cols-2 gap-3">
+      {{#each subEvents}}
+      <a href="/events/{{id}}" class="block rounded-xl p-4" style="background:var(--bg-card-sub,rgba(255,255,255,0.03));border:1px solid var(--border);text-decoration:none;transition:border-color 0.2s" onmouseover="this.style.borderColor='rgba(99,102,241,0.4)'" onmouseout="this.style.borderColor=''">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-bold text-sm" style="color:var(--text-primary)">{{name}}</span>
+          <span class="{{#if (eq status 'ongoing')}}badge-green{{else}}{{#if (eq status 'completed')}}badge-blue{{else}}badge-gray{{/if}}{{/if}}" style="font-size:0.7rem;padding:2px 8px;border-radius:999px">{{status}}</span>
+        </div>
+        <div class="text-xs" style="color:var(--text-muted)">{{#if date}}{{date}}{{/if}}{{#if venue}} &middot; {{venue}}{{/if}}</div>
+        <div class="text-xs mt-1" style="color:var(--text-faint)">{{contestantCount}} contestants</div>
+      </a>
+      {{else}}
+      <p style="color:var(--text-muted);font-size:0.85rem;padding:8px 0">No sub-events yet.{{#if isAdmin}} Click "+ Add Sub-Event" to create one.{{/if}}{{#if isOrganizer}} Click "+ Add Sub-Event" to create one.{{/if}}</p>
+      {{/each}}
+    </div>
+  </div>
+  {{/if}}
+
+</main>
+</div>
+
+<!-- QR Code library (CDN, no install needed) -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<style>
+/* -- Premium Dropdown -- */
+.dropdown-menu-premium {
+  background: rgba(13,18,36,0.92);
+  backdrop-filter: blur(18px) saturate(1.6);
+  -webkit-backdrop-filter: blur(18px) saturate(1.6);
+  border: 1px solid rgba(255,255,255,0.13);
+  border-radius: 16px;
+  overflow: hidden;
+  min-width: 230px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.75), 0 4px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07);
+  transform-origin: top right;
+  animation: dropdownIn 140ms cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes dropdownIn {
+  from { opacity:0; transform:scale(0.92) translateY(-6px); }
+  to   { opacity:1; transform:scale(1)    translateY(0); }
+}
+.dropdown-section-label {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(148,163,184,0.4);
+  padding: 10px 16px 4px;
+}
+.dropdown-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.07);
+  margin: 5px 0;
+}
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #cbd5e1;
+  text-decoration: none;
+  transition: background 100ms ease, color 100ms ease, box-shadow 100ms ease;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  width: 100%;
+  position: relative;
+}
+.dropdown-item:hover {
+  background: rgba(255,255,255,0.07);
+  color: #f1f5f9;
+  box-shadow: inset 3px 0 0 rgba(59,130,246,0.5);
+}
+.dropdown-item.item-finance { color: #6ee7b7; }
+.dropdown-item.item-finance:hover { background: rgba(16,185,129,0.10); box-shadow: inset 3px 0 0 #10b981; }
+.dropdown-item.item-voting { color: #c4b5fd; }
+.dropdown-item.item-voting:hover { background: rgba(139,92,246,0.10); box-shadow: inset 3px 0 0 #8b5cf6; }
+.dropdown-item.item-danger { color: #fca5a5; }
+.dropdown-item.item-danger:hover { background: rgba(239,68,68,0.12); box-shadow: inset 3px 0 0 #ef4444; }
+
+/* -- Premium Status Badge Glow -- */
+.badge-premium-green {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 12px; border-radius: 999px;
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap;
+  background: linear-gradient(135deg, rgba(5,150,105,0.35), rgba(16,185,129,0.25));
+  color: #6ee7b7;
+  border: 1px solid rgba(16,185,129,0.4);
+  box-shadow: 0 0 10px rgba(16,185,129,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.badge-premium-blue {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 12px; border-radius: 999px;
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap;
+  background: linear-gradient(135deg, rgba(29,78,216,0.35), rgba(59,130,246,0.25));
+  color: #93c5fd;
+  border: 1px solid rgba(59,130,246,0.4);
+  box-shadow: 0 0 10px rgba(59,130,246,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.badge-premium-yellow {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 12px; border-radius: 999px;
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap;
+  background: linear-gradient(135deg, rgba(146,64,14,0.35), rgba(245,158,11,0.25));
+  color: #fcd34d;
+  border: 1px solid rgba(245,158,11,0.4);
+  box-shadow: 0 0 10px rgba(245,158,11,0.2), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.badge-premium-red {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 12px; border-radius: 999px;
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap;
+  background: linear-gradient(135deg, rgba(185,28,28,0.35), rgba(239,68,68,0.25));
+  color: #fca5a5;
+  border: 1px solid rgba(239,68,68,0.4);
+  box-shadow: 0 0 10px rgba(239,68,68,0.2), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.badge-premium-gray {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 12px; border-radius: 999px;
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap;
+  background: rgba(255,255,255,0.07);
+  color: #94a3b8;
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+/* -- Premium Contestant Cards -- */
+.contestant-card {
+  aspect-ratio: 3/4;
+  border: 1px solid var(--border);
+  background: #0d1322;
+  border-radius: 18px;
+  overflow: hidden;
+  position: relative;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+.contestant-card:hover {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 12px 40px rgba(59,130,246,0.28), 0 4px 16px rgba(0,0,0,0.5);
+}
+.contestant-initials-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #0b1530 0%, #0f1e45 40%, #172565 100%);
+}
+.contestant-initials-placeholder::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 60% 30%, rgba(59,130,246,0.12) 0%, transparent 70%);
+}
+.contestant-number-badge {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.35rem; font-weight: 900; color: #fff;
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
+  box-shadow: 0 4px 20px rgba(37,99,235,0.55), inset 0 1px 0 rgba(255,255,255,0.25);
+  border: 2px solid rgba(255,255,255,0.2);
+  position: relative;
+  z-index: 1;
+}
+
+/* -- Criteria weight badge -- */
+.criteria-weight-badge {
+  font-size: 11px; font-weight: 800;
+  padding: 4px 10px; border-radius: 999px;
+  background: linear-gradient(135deg, rgba(109,40,217,0.25), rgba(139,92,246,0.2));
+  color: #c4b5fd;
+  border: 1px solid rgba(139,92,246,0.3);
+  box-shadow: 0 0 8px rgba(139,92,246,0.15);
+}
+</style>
+<script>
+// Shared dropdown portal &mdash; appended to body so overflow:hidden never clips it
+var _portal = null;
+function getPortal() {
+  if (!_portal) {
+    _portal = document.createElement('div');
+    _portal.id = 'dropdown-portal';
+    _portal.style.cssText = 'position:fixed;z-index:99999;top:0;left:0;pointer-events:none';
+    document.body.appendChild(_portal);
+  }
+  return _portal;
+}
+
+function toggleDropdown(id, btn) {
+  var portal  = getPortal();
+  var content = document.getElementById(id + '-content');
+  if (!content) return;
+
+  // If already visible, hide it
+  if (content.style.display === 'block') {
+    content.style.display = 'none';
+    portal.style.pointerEvents = 'none';
+    return;
+  }
+
+  // Hide all other dropdowns
+  portal.querySelectorAll('[data-dropdown]').forEach(function(el) { el.style.display = 'none'; });
+
+  // Position it below the button using fixed coords
+  var rect      = btn.getBoundingClientRect();
+  var menuWidth = 230; // min-width of dropdown
+  var rightVal  = window.innerWidth - rect.right;
+
+  content.style.display  = 'block';
+  content.style.position = 'fixed';
+  content.style.top      = (rect.bottom + 6) + 'px';
+
+  // Re-trigger CSS animation
+  content.style.animation = 'none';
+  content.offsetHeight; // force reflow
+  content.style.animation = '';
+
+  // If anchoring to right would push menu off left edge, anchor left instead
+  if (rect.right - menuWidth < 8) {
+    content.style.left  = Math.max(8, rect.left) + 'px';
+    content.style.right = 'auto';
+  } else {
+    content.style.right = Math.max(4, rightVal) + 'px';
+    content.style.left  = 'auto';
+  }
+  // Ensure it never goes off screen bottom
+  content.style.maxHeight = (window.innerHeight - rect.bottom - 16) + 'px';
+  content.style.overflowY = 'auto';
+  portal.style.pointerEvents = 'auto';
+
+  // Move into portal if not already there
+  if (content.parentNode !== portal) {
+    portal.appendChild(content);
+  }
+}
+
+function closeDropdown(id) {
+  var content = document.getElementById(id + '-content');
+  if (content) content.style.display = 'none';
+  if (_portal) _portal.style.pointerEvents = 'none';
+}
+
+// Close when clicking outside
+document.addEventListener('click', function(e) {
+  if (!_portal) return;
+  var inBtn = e.target.closest('[id$="-more-wrap"]');
+  var inMenu = e.target.closest('[data-dropdown]');
+  if (!inBtn && !inMenu) {
+    _portal.querySelectorAll('[data-dropdown]').forEach(function(el) { el.style.display = 'none'; });
+    _portal.style.pointerEvents = 'none';
+  }
+});
+
+// Reposition on scroll/resize
+window.addEventListener('scroll', function() {
+  if (_portal) _portal.querySelectorAll('[data-dropdown]').forEach(function(el) { el.style.display = 'none'; });
+}, true);
+</script>
+<script>
+/* -- Finance form toggle + type switcher -- */
+function toggleFinanceForm() {
+  const wrap = document.getElementById('finance-form-wrap');
+  if (!wrap) return;
+  const hidden = wrap.classList.contains('hidden');
+  wrap.classList.toggle('hidden', !hidden);
+  if (hidden) wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function setFinType(type) {
+  document.getElementById('fin-type-val').value = type;
+  const incBtn = document.getElementById('fin-income-btn');
+  const expBtn = document.getElementById('fin-expense-btn');
+  if (type === 'income') {
+    incBtn.style.cssText = 'background:rgba(16,185,129,0.2);color:#6ee7b7;border:2px solid rgba(16,185,129,0.4);padding:8px;border-radius:12px;font-size:0.75rem;font-weight:800;transition:background 80ms ease,color 80ms ease,border-color 80ms ease';
+    expBtn.style.cssText = 'background:rgba(255,255,255,0.05);color:var(--text-muted);border:2px solid rgba(255,255,255,0.08);padding:8px;border-radius:12px;font-size:0.75rem;font-weight:800;transition:background 80ms ease,color 80ms ease,border-color 80ms ease';
+  } else {
+    expBtn.style.cssText = 'background:rgba(239,68,68,0.2);color:#fca5a5;border:2px solid rgba(239,68,68,0.4);padding:8px;border-radius:12px;font-size:0.75rem;font-weight:800;transition:background 80ms ease,color 80ms ease,border-color 80ms ease';
+    incBtn.style.cssText = 'background:rgba(255,255,255,0.05);color:var(--text-muted);border:2px solid rgba(255,255,255,0.08);padding:8px;border-radius:12px;font-size:0.75rem;font-weight:800;transition:background 80ms ease,color 80ms ease,border-color 80ms ease';
+  }
+}
+
+/* -- Auto-open finance form if redirected with #finance hash -- */
+if (window.location.hash === '#finance') {
+  document.addEventListener('DOMContentLoaded', () => {
+    const wrap = document.getElementById('finance-form-wrap');
+    if (wrap) wrap.classList.remove('hidden');
+    document.getElementById('finance')?.scrollIntoView({ behavior: 'smooth' });
+  });
+}
+  (function() {
+    const eventId  = "{{event.id}}";
+    const origin   = window.location.origin;
+    const eventUrl = origin + "/events/" + eventId;
+
+    document.getElementById("qr-url-display").textContent = eventUrl;
+
+    QRCode.toCanvas(
+      document.getElementById("event-qr-canvas"),
+      eventUrl,
+      {
+        width:            160,
+        margin:           2,
+        color: { dark: "#1e1b4b", light: "#ffffff" },
+        errorCorrectionLevel: "M",
+      },
+      function(err) {
+        if (err) console.error("QR generation error:", err);
+      }
+    );
+
+    window.downloadQR = function() {
+      const canvas = document.getElementById("event-qr-canvas");
+      const link   = document.createElement("a");
+      link.download = "event-qr-{{event.id}}.png";
+      link.href     = canvas.toDataURL("image/png");
+      link.click();
+    };
+
+    window.copyEventUrl = function() {
+      navigator.clipboard.writeText(eventUrl).then(function() {
+        const btn = event.target.closest("button");
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+        setTimeout(function() { btn.innerHTML = orig; }, 1800);
+      });
+    };
+  })();
+</script>
+
+<script>
+/* -- Timer-end finance auto-record -- */
+window._timerEndRecorded = false;
+window._onTimerEventEnd = function() {
+  if (window._timerEndRecorded) return;
+  window._timerEndRecorded = true;
+  const timerEl = document.getElementById('event-meta');
+  if (!timerEl) return;
+  const eventId = timerEl.dataset.eventId;
+  if (!eventId) return;
+  fetch('/events/' + eventId + '/finance', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+    body: JSON.stringify({
+      type:        'income',
+      category:    'Other',
+      description: 'Event ended (auto-recorded by Stage Timer)',
+      amount:      0,
+    }),
+  }).catch(() => {});
+};
+</script>
+<!-- -- Add Judge Modal -- -->
+<!-- -- Assign Judge Modal -- -->
+{{#unless event.isEventSeries}}
+<div id="add-judge-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4"
+  style="background:rgba(0,0,0,0.7);backdrop-filter:blur(6px)">
+  <div class="rounded-2xl overflow-hidden shadow-2xl"
+    style="background:var(--bg-card);border:1px solid rgba(99,102,241,0.3);max-height:80vh;overflow-y:auto;width:min(300px,calc(100vw - 2rem));max-width:300px">
+    <!-- Header -->
+    <div class="px-3 py-2 flex items-center justify-between"
+      style="border-bottom:1px solid var(--border);background:rgba(99,102,241,0.08)">
+      <div class="flex items-center gap-2.5">
+        <div class="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+          style="background:linear-gradient(135deg,#4c1d95,#7c3aed)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div>
+          <h3 class="font-extrabold text-sm" style="color:var(--text-primary)">Assign Judge</h3>
+          <p class="text-[10px]" style="color:var(--text-muted)">Assign a judge to this event</p>
+        </div>
+      </div>
+      <button onclick="closeAddJudgeModal()" class="w-6 h-6 rounded-lg flex items-center justify-center transition hover:bg-white/10" style="color:var(--text-muted);min-height:unset">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Assigned judges list -->
+    {{#if assignedJudges.length}}
+    <div class="px-3 pt-2">
+      <p class="text-[10px] font-bold uppercase tracking-wider mb-1.5" style="color:var(--text-muted)">Currently Assigned</p>
+      <div class="space-y-1 mb-2">
+        {{#each assignedJudges}}
+        <div class="flex items-center justify-between px-2 py-1 rounded-lg" style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.18)">
+          <div class="flex items-center gap-1.5">
+            <div class="w-5 h-5 rounded-full flex items-center justify-center text-white text-[9px] font-black flex-shrink-0" style="background:linear-gradient(135deg,#4c1d95,#7c3aed)">{{name.[0]}}</div>
+            <div>
+              <div class="text-[11px] font-bold" style="color:var(--text-primary)">{{name}}</div>
+              <div class="text-[9px]" style="color:var(--text-muted)">{{email}}</div>
+            </div>
+          </div>
+          <form method="POST" action="/events/{{../event.id}}/judges/{{id}}/remove" class="inline">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+            <button type="submit" class="text-[9px] font-bold px-2 py-0.5 rounded-md transition" style="background:rgba(239,68,68,0.12);color:#fca5a5;border:1px solid rgba(239,68,68,0.2);min-height:unset">Remove</button>
+          </form>
+        </div>
+        {{/each}}
+      </div>
+    </div>
+    {{/if}}
+
+    <!-- Assign from available judges -->
+    <form method="POST" action="/events/{{event.id}}/judges/assign" class="px-3 py-2 space-y-2">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+      {{#if availableJudges.length}}
+      <p class="text-[10px] font-bold uppercase tracking-wider" style="color:var(--text-muted)">Add Judge</p>
+      <select name="judgeId" required class="form-input-bare w-full" style="font-size:0.8rem;min-height:unset;height:32px">
+        <option value="">&mdash; Select a judge &mdash;</option>
+        {{#each availableJudges}}
+        <option value="{{id}}">{{name}} ({{email}})</option>
+        {{/each}}
+      </select>
+      <div class="flex gap-2 pt-0.5 justify-end">
+        <button type="button" onclick="closeAddJudgeModal()" class="btn-secondary px-3" style="min-height:unset;height:30px;font-size:0.72rem">Cancel</button>
+        <button type="submit" class="btn-primary px-4" style="min-height:unset;height:30px;font-size:0.72rem">
+          Assign Judge
+        </button>
+      </div>
+      {{else}}
+      <div class="py-3 text-center text-xs" style="color:var(--text-faint)">
+        All judges are already assigned, or no judge accounts exist yet.
+        <br><a href="/users" class="text-indigo-400 font-semibold mt-1 inline-block">Create judge accounts in Users &rarr;</a>
+      </div>
+      <div class="flex justify-end pb-1">
+        <button type="button" onclick="closeAddJudgeModal()" class="btn-secondary px-4" style="min-height:unset;height:34px;font-size:0.8rem">Close</button>
+      </div>
+      {{/if}}
+    </form>
+  </div>
+</div>
+{{/unless}}
+
+<!-- -- Dropdown content (portaled to body via JS to avoid overflow clipping) -- -->
+<div id="admin-more-content" data-dropdown class="dropdown-menu-premium" style="display:none">
+  <div class="dropdown-section-label">Event Settings</div>
+  <a href="/events/{{event.id}}/edit" class="dropdown-item">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Event</a>
+  {{#unless event.isEventSeries}}
+  {{#unless event.isEventSeries}}
+  <button type="button" onclick="openAddJudgeModal();closeDropdown('admin-more')" class="dropdown-item w-full text-left">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Assign Judge</button>
+  {{/unless}}
+  <a href="/events/{{event.id}}/criteria" class="dropdown-item">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Scoring Criteria</a>
+  <form method="POST" action="/events/{{event.id}}/lock"><input type="hidden" name="_csrf" value="{{csrfToken}}">
+    <button type="submit" class="dropdown-item w-full text-left {{#if event.scoringLocked}}item-danger{{/if}}">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> {{#if event.scoringLocked}}Unlock Scores{{else}}Lock Scores{{/if}}</button></form>
+  <form method="POST" action="/events/{{event.id}}/results/lock"><input type="hidden" name="_csrf" value="{{csrfToken}}">
+    <button type="submit" class="dropdown-item w-full text-left">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> {{#if event.resultsLocked}}Unlock Results{{else}}Lock Results{{/if}}</button></form>
+  <div class="dropdown-divider"></div>
+  <div class="dropdown-section-label">Publishing</div>
+  <a href="/events/{{event.id}}/display" target="_blank" class="dropdown-item">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Display Board</a>
+  <a href="/events/{{event.id}}/public" target="_blank" class="dropdown-item">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Public Results</a>
+  <a href="/events/{{event.id}}/self-register" target="_blank" class="dropdown-item">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> Reg QR</a>
+  <a href="/events/{{event.id}}/report" class="dropdown-item">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="19" x2="11" y2="19"/></svg> Report</a>
+  <a href="/events/{{event.id}}/results/export" class="dropdown-item">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export CSV</a>
+  <div class="dropdown-divider"></div>
+  <div class="dropdown-section-label">Finance &amp; Voting</div>
+  {{#if event.isPaymentType}}<a href="#finance" onclick="document.getElementById('finance')?.scrollIntoView({behavior:'smooth'});closeDropdown('admin-more')" class="dropdown-item item-finance">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Finance</a>{{/if}}
+  <a href="/events/{{event.id}}/vote/qr" class="dropdown-item item-voting">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Audience Voting</a>
+  <form method="POST" action="/events/{{event.id}}/vote/toggle"><input type="hidden" name="_csrf" value="{{csrfToken}}">
+    <button type="submit" class="dropdown-item item-voting w-full text-left">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> {{#if event.votingOpen}}Close Voting{{else}}Open Voting{{/if}}</button></form>
+  <div class="dropdown-divider"></div>
+  <div class="dropdown-section-label">Admin</div>
+  <button type="button" onclick="openOrganizerMenuModal();closeDropdown('admin-more')" class="dropdown-item w-full text-left">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/><circle cx="8" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="10" cy="19" r="1"/></svg>
+    Organizer menu items</button>
+  {{/unless}}
+  <div class="dropdown-divider"></div>
+  <form method="POST" action="/events/{{event.id}}/delete" onsubmit="return false" data-confirm-title="Delete Event" data-confirm-msg="Permanently delete this event and all its data? This cannot be undone." data-confirm-ok="Delete Event" data-confirm-type="danger">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+    <button type="submit" class="dropdown-item item-danger w-full text-left">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Delete Event</button></form>
+</div>
+
+{{#if isAdmin}}
+<div id="organizer-menu-modal" class="hidden fixed inset-0 z-[100] items-center justify-center p-4" style="background:rgba(2,6,23,0.78);backdrop-filter:blur(5px)" onclick="if(event.target===this)closeOrganizerMenuModal()">
+  <section class="w-full max-w-lg rounded-2xl overflow-hidden" style="background:var(--bg-card);border:1px solid rgba(255,255,255,0.12);box-shadow:0 24px 80px rgba(0,0,0,0.55)" role="dialog" aria-modal="true" aria-labelledby="organizer-menu-title">
+    <div class="px-5 py-4 flex items-start justify-between gap-4" style="border-bottom:1px solid rgba(255,255,255,0.08)">
+      <div>
+        <h2 id="organizer-menu-title" class="text-base font-extrabold text-white">Organizer More menu</h2>
+        <p class="mt-1 text-xs leading-relaxed" style="color:var(--text-secondary)">Choose specific items to hide. The More menu itself will remain visible to organizers.</p>
+      </div>
+      <button type="button" onclick="closeOrganizerMenuModal()" class="text-slate-400 hover:text-white" aria-label="Close menu settings">&mdash;</button>
+    </div>
+    <form method="POST" action="/events/{{event.id}}/organizer-menu">
+      <input type="hidden" name="_csrf" value="{{csrfToken}}">
+      <div class="max-h-[55vh] overflow-y-auto p-5 grid sm:grid-cols-2 gap-2">
+        <label class="flex items-center gap-3 rounded-xl p-3 text-sm text-slate-200" style="background:rgba(255,255,255,0.04)">
+          <input type="checkbox" name="hiddenItems" value="edit" {{#if (includes event.hiddenOrganizerMoreItems "edit")}}checked{{/if}}> Edit Event
+        </label>
+        <label class="flex items-center gap-3 rounded-xl p-3 text-sm text-slate-200" style="background:rgba(255,255,255,0.04)">
+          <input type="checkbox" name="hiddenItems" value="assignJudge" {{#if (includes event.hiddenOrganizerMoreItems "assignJudge")}}checked{{/if}}> Assign Judge
+        </label>
+        <label class="flex items-center gap-3 rounded-xl p-3 text-sm text-slate-200" style="background:rgba(255,255,255,0.04)">
+          <input type="checkbox" name="hiddenItems" value="criteria" {{#if (includes event.hiddenOrganizerMoreItems "criteria")}}checked{{/if}}> Criteria
+        </label>
+        <label class="flex items-center gap-3 rounded-xl p-3 text-sm text-slate-200" style="background:rgba(255,255,255,0.04)">
+          <input type="checkbox" name="hiddenItems" value="display" {{#if (includes event.hiddenOrganizerMoreItems "display")}}checked{{/if}}> Display Board
+        </label>
+        <label class="flex items-center gap-3 rounded-xl p-3 text-sm text-slate-200" style="background:rgba(255,255,255,0.04)">
+          <input type="checkbox" name="hiddenItems" value="publicResults" {{#if (includes event.hiddenOrganizerMoreItems "publicResults")}}checked{{/if}}> Public Results
+        </label>
+        <label class="flex items-center gap-3 rounded-xl p-3 text-sm text-slate-200" style="background:rgba(255,255,255,0.04)">
+          <input type="checkbox" name="hiddenItems" value="registrationQr" {{#if (includes event.hiddenOrganizerMoreItems "registrationQr")}}checked{{/if}}> Registration QR
+        </label>
+        <label class="flex items-center gap-3 rounded-xl p-3 text-sm text-slate-200" style="background:rgba(255,255,255,0.04)">
+          <input type="checkbox" name="hiddenItems" value="report" {{#if (includes event.hiddenOrganizerMoreItems "report")}}checked{{/if}}> Report
+        </label>
+        <label class="flex items-center gap-3 rounded-xl p-3 text-sm text-slate-200" style="background:rgba(255,255,255,0.04)">
+          <input type="checkbox" name="hiddenItems" value="exportCsv" {{#if (includes event.hiddenOrganizerMoreItems "exportCsv")}}checked{{/if}}> Export CSV
+        </label>
+        {{#if event.isPaymentType}}
+        <label class="flex items-center gap-3 rounded-xl p-3 text-sm text-slate-200" style="background:rgba(255,255,255,0.04)">
+          <input type="checkbox" name="hiddenItems" value="finance" {{#if (includes event.hiddenOrganizerMoreItems "finance")}}checked{{/if}}> Finance
+        </label>
+        {{/if}}
+        <label class="flex items-center gap-3 rounded-xl p-3 text-sm text-slate-200" style="background:rgba(255,255,255,0.04)">
+          <input type="checkbox" name="hiddenItems" value="audienceVoting" {{#if (includes event.hiddenOrganizerMoreItems "audienceVoting")}}checked{{/if}}> Audience Voting
+        </label>
+        <label class="flex items-center gap-3 rounded-xl p-3 text-sm text-slate-200" style="background:rgba(255,255,255,0.04)">
+          <input type="checkbox" name="hiddenItems" value="toggleVoting" {{#if (includes event.hiddenOrganizerMoreItems "toggleVoting")}}checked{{/if}}> Open / Close Voting
+        </label>
+        <label class="flex items-center gap-3 rounded-xl p-3 text-sm text-slate-200" style="background:rgba(255,255,255,0.04)">
+          <input type="checkbox" name="hiddenItems" value="delete" {{#if (includes event.hiddenOrganizerMoreItems "delete")}}checked{{/if}}> Delete Event
+        </label>
+      </div>
+      <div class="px-5 py-4 flex justify-end gap-2" style="border-top:1px solid var(--border)">
+        <button type="button" onclick="closeOrganizerMenuModal()" class="btn-secondary px-4 py-2 text-sm">Cancel</button>
+        <button type="submit" class="btn-primary px-4 py-2 text-sm">Save choices</button>
+      </div>
+    </form>
+  </section>
+</div>
+{{/if}}
+
+<div id="org-more-content" data-dropdown class="dropdown-menu-premium" style="display:none">
+  <div class="dropdown-section-label">Event Settings</div>
+    {{#unless (includes event.hiddenOrganizerMoreItems "edit")}}
+  <a href="/events/{{event.id}}/edit" class="dropdown-item">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Event</a>
+    {{/unless}}
+    {{#unless event.isEventSeries}}
+    {{#unless (includes event.hiddenOrganizerMoreItems "assignJudge")}}
+  <button type="button" onclick="openAddJudgeModal();closeDropdown('org-more')" class="dropdown-item w-full text-left">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Assign Judge</button>
+    {{/unless}}
+    {{#unless (includes event.hiddenOrganizerMoreItems "criteria")}}
+  <a href="/events/{{event.id}}/criteria" class="dropdown-item">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Scoring Criteria</a>
+    {{/unless}}
+  <form method="POST" action="/events/{{event.id}}/results/lock"><input type="hidden" name="_csrf" value="{{csrfToken}}">
+    <button type="submit" class="dropdown-item w-full text-left">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> {{#if event.resultsLocked}}Unlock Results{{else}}Lock Results{{/if}}</button></form>
+  <div class="dropdown-divider"></div>
+  <div class="dropdown-section-label">Publishing</div>
+    {{#unless (includes event.hiddenOrganizerMoreItems "display")}}
+  <a href="/events/{{event.id}}/display" target="_blank" class="dropdown-item">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Display Board</a>
+    {{/unless}}
+    {{#unless (includes event.hiddenOrganizerMoreItems "publicResults")}}
+  <a href="/events/{{event.id}}/public" target="_blank" class="dropdown-item">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Public Results</a>
+    {{/unless}}
+    {{#unless (includes event.hiddenOrganizerMoreItems "registrationQr")}}
+  <a href="/events/{{event.id}}/self-register" target="_blank" class="dropdown-item">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> Reg QR</a>
+    {{/unless}}
+    {{#unless (includes event.hiddenOrganizerMoreItems "report")}}
+  <a href="/events/{{event.id}}/report" class="dropdown-item">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="19" x2="11" y2="19"/></svg> Report</a>
+    {{/unless}}
+    {{#unless (includes event.hiddenOrganizerMoreItems "exportCsv")}}
+  <a href="/events/{{event.id}}/results/export" class="dropdown-item">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export CSV</a>
+    {{/unless}}
+  <div class="dropdown-divider"></div>
+  <div class="dropdown-section-label">Finance &amp; Voting</div>
+    {{#unless (includes event.hiddenOrganizerMoreItems "finance")}}
+  {{#if event.isPaymentType}}<a href="#finance" onclick="document.getElementById('finance')?.scrollIntoView({behavior:'smooth'});closeDropdown('org-more')" class="dropdown-item item-finance">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Finance</a>{{/if}}
+    {{/unless}}
+    {{#unless (includes event.hiddenOrganizerMoreItems "audienceVoting")}}
+  <a href="/events/{{event.id}}/vote/qr" class="dropdown-item item-voting">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Audience Voting</a>
+    {{/unless}}
+    {{#unless (includes event.hiddenOrganizerMoreItems "toggleVoting")}}
+  <form method="POST" action="/events/{{event.id}}/vote/toggle"><input type="hidden" name="_csrf" value="{{csrfToken}}">
+    <button type="submit" class="dropdown-item item-voting w-full text-left">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> {{#if event.votingOpen}}Close Voting{{else}}Open Voting{{/if}}</button></form>
+    {{/unless}}
+    {{#unless (includes event.hiddenOrganizerMoreItems "delete")}}
+    {{/unless}}
+  <div class="dropdown-divider"></div>
+  <form method="POST" action="/events/{{event.id}}/delete" onsubmit="return false" data-confirm-title="Delete Event" data-confirm-msg="Permanently delete this event and all its data? This cannot be undone." data-confirm-ok="Delete Event" data-confirm-type="danger">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+    <button type="submit" class="dropdown-item item-danger w-full text-left">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Delete Event</button></form>
+    {{/unless}}
+</div>
+
+<script>
+function openOrganizerMenuModal() {
+  const modal = document.getElementById('organizer-menu-modal');
+  modal.classList.remove('hidden');
+  modal.style.display = 'flex';
+}
+function closeOrganizerMenuModal() {
+  const modal = document.getElementById('organizer-menu-modal');
+  modal.classList.add('hidden');
+  modal.style.display = '';
+}
+function openAddJudgeModal() {
+  // Close all dropdowns first
+  if (window._portal) {
+    window._portal.querySelectorAll('[data-dropdown]').forEach(function(d) { d.style.display = 'none'; });
+    window._portal.style.pointerEvents = 'none';
+  }
+  const m = document.getElementById('add-judge-modal');
+  m.classList.remove('hidden');
+  m.style.display = 'flex';
+  var focusEl = m.querySelector('select, input[type="text"]');
+  if (focusEl) focusEl.focus();
+}
+function closeAddJudgeModal() {
+  const m = document.getElementById('add-judge-modal');
+  m.classList.add('hidden');
+  m.style.display = '';
+}
+document.getElementById('add-judge-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeAddJudgeModal();
+});
+</script>
+
+<script>
+(function() {
+  var REFRESH_MS = 15000;
+  var lastActivity = Date.now();
+  ['mousemove','keydown','click','scroll','touchstart','wheel'].forEach(function(ev) {
+    document.addEventListener(ev, function(){ lastActivity = Date.now(); }, { passive: true });
+  });
+  function canRefresh() {
+    if (document.hidden) return false;
+    if (document.activeElement && ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return false;
+    if (document.querySelector('.fixed.inset-0:not([style*="display: none"]):not([style*="display:none"])')) return false;
+    if ((document.querySelector('main') || document.documentElement).scrollTop > 300) return false;
+    if (Date.now() - lastActivity < REFRESH_MS) return false;
+    return true;
+  }
+  setInterval(function() {
+    if (canRefresh()) location.reload();
+  }, REFRESH_MS);
+})();
+</script>
+
+
+</body>
+</html>

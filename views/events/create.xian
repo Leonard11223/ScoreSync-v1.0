@@ -1,0 +1,922 @@
+{{> head }}
+<body class="min-h-screen flex flex-col ss-page-bg">
+{{> navbar }}
+<div class="flex flex-1 overflow-hidden">
+{{> sidebar }}
+<main class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
+  {{#if error_msg}}<div class="alert-error mb-6 animate-fadeup"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>{{error_msg}}</div>{{/if}}
+
+  <div class="page-header animate-fadeup">
+    <div class="breadcrumb"><a href="/events">Back to Events</a></div>
+    <h1>Create New Event</h1>
+    <p>Fill in all the details to set up a new competition event.</p>
+  </div>
+
+  <form method="POST" action="/events" class="animate-fadeup-1">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+    <div class="grid lg:grid-cols-3 gap-5">
+      <div class="lg:col-span-2 space-y-5">
+
+        <div class="card-flat">
+          <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+            <div class="w-8 h-8 grad-brand rounded-lg flex items-center justify-center shadow-sm">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <h2 class="font-bold text-slate-800">Basic Information</h2>
+          </div>
+          <div class="px-6 py-5 space-y-4">
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Event Name <span class="text-red-500">*</span></label><input type="text" name="name" placeholder="e.g. Miss Universe 2026" required class="form-input-bare"/></div>
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Description</label><textarea name="description" rows="3" placeholder="Describe this competition event..." class="form-input-bare resize-none"></textarea></div>
+
+            <!-- Event Cover Photo -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Event Cover Photo</label>
+              <div id="create-cover-dropzone" onclick="document.getElementById('create-cover-file').click()"
+                class="relative w-full rounded-xl border-2 border-dashed cursor-pointer overflow-hidden transition"
+                style="border-color:rgba(255,255,255,0.15);min-height:140px;background:rgba(255,255,255,0.03)">
+                <div id="create-cover-placeholder" class="flex flex-col items-center justify-center py-8 gap-2">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  <p class="text-xs font-semibold" style="color:var(--text-muted)">Click to upload cover photo</p>
+                  <p class="text-[11px]" style="color:var(--text-faint)">JPG, PNG, WebP — max 3MB</p>
+                </div>
+                <img id="create-cover-preview" src="" alt="Cover preview" class="hidden w-full h-40 object-cover rounded-xl"/>
+              </div>
+              <input type="file" id="create-cover-file" accept="image/png,image/jpeg,image/jpg,image/webp" class="hidden" onchange="handleCoverUpload(this,'create-cover-preview','create-cover-placeholder','create-cover-b64')"/>
+              <input type="hidden" name="coverPhoto" id="create-cover-b64"/>
+              <button type="button" id="create-cover-clear" onclick="clearCover('create-cover-preview','create-cover-placeholder','create-cover-b64','create-cover-clear')" class="hidden mt-1.5 text-xs font-bold" style="color:#f87171">&#10005; Remove photo</button>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Event Type</label>
+                <select name="type" id="event-type-select" onchange="handleEventType(this)" class="form-input-bare bg-white">
+                  <option value="pageant">Pageant (Beauty / Royalty)</option>
+                  <option value="cultural">Street Dancing &amp; Cultural</option>
+                  <option value="float">Float Parade Competition</option>
+                  <option value="marching">Drum &amp; Lyre / Marching Band</option>
+                  <option value="choral">Choral &amp; Vocal Contest</option>
+                  <option value="dance">Dance Crew / Modern Dance</option>
+                  <option value="booth">Agro-Industrial &amp; Booth Display</option>
+                  <option value="sports">Sports &amp; Palaro</option>
+                  <option value="academic">Academic &amp; Quiz Bee</option>
+                  <option value="culinary">Culinary &amp; Cooking Contest</option>
+                  <option value="talent">Talent Show</option>
+                  <option value="other">Other LGU Competition</option>
+                </select>
+              </div>
+              <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Status</label>
+                <select name="status" id="event-status" class="form-input-bare bg-white">
+                  <option value="upcoming">Upcoming</option>
+                  <option value="ongoing">Ongoing</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+                <p class="text-[11px] mt-1" style="color:var(--text-faint)">Auto-set from date — you can override.</p>
+              </div>
+            </div>
+
+            <!-- Other LGU Competition — auto-shows when type = other -->
+            <div id="other-lgu-wrap" class="hidden animate-fadeup">
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
+                Specify Competition Type <span class="text-red-500">*</span>
+              </label>
+              <input type="text" name="otherType" id="other-lgu-input"
+                placeholder="e.g. Sayaw sa Bangko, Literary &amp; Musical Contest, Fiesta Parade…"
+                class="form-input-bare"/>
+              <p class="text-[11px] mt-1.5" style="color:var(--text-faint)">Describe the type of LGU competition not listed above.</p>
+            </div>
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Organizer</label><input type="text" name="organizer" placeholder="e.g. Event Organizer / Committee" class="form-input-bare"/></div>
+
+            <!-- Theme Color Picker -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">Event Card Theme</label>
+              <div class="flex flex-wrap gap-2">
+                <label class="theme-pick cursor-pointer">
+                  <input type="radio" name="theme" value="blue" checked class="sr-only">
+                  <span class="theme-swatch flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-xs font-bold transition"
+                    style="background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;border-color:#2563eb">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg> Blue
+                  </span>
+                </label>
+                <label class="theme-pick cursor-pointer">
+                  <input type="radio" name="theme" value="purple" class="sr-only">
+                  <span class="theme-swatch flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-xs font-bold transition"
+                    style="background:linear-gradient(135deg,#4c1d95,#7c3aed);color:#fff;border-color:transparent">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg> Purple
+                  </span>
+                </label>
+                <label class="theme-pick cursor-pointer">
+                  <input type="radio" name="theme" value="green" class="sr-only">
+                  <span class="theme-swatch flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-xs font-bold transition"
+                    style="background:linear-gradient(135deg,#064e3b,#10b981);color:#fff;border-color:transparent">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg> Green
+                  </span>
+                </label>
+                <label class="theme-pick cursor-pointer">
+                  <input type="radio" name="theme" value="gold" class="sr-only">
+                  <span class="theme-swatch flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-xs font-bold transition"
+                    style="background:linear-gradient(135deg,#92400e,#d97706);color:#fff;border-color:transparent">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg> Gold
+                  </span>
+                </label>
+                <label class="theme-pick cursor-pointer">
+                  <input type="radio" name="theme" value="rose" class="sr-only">
+                  <span class="theme-swatch flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-xs font-bold transition"
+                    style="background:linear-gradient(135deg,#881337,#e11d48);color:#fff;border-color:transparent">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg> Rose
+                  </span>
+                </label>
+                <label class="theme-pick cursor-pointer">
+                  <input type="radio" name="theme" value="slate" class="sr-only">
+                  <span class="theme-swatch flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-xs font-bold transition"
+                    style="background:linear-gradient(135deg,#1e293b,#475569);color:#fff;border-color:transparent">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg> Slate
+                  </span>
+                </label>
+              </div>
+              <style>
+                .theme-pick input:checked + .theme-swatch { border-color: white !important; box-shadow: 0 0 0 2px rgba(255,255,255,0.5); }
+              </style>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-flat">
+          <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+            <div class="w-8 h-8 grad-green rounded-lg flex items-center justify-center shadow-sm">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <h2 class="font-bold text-slate-800">Schedule &amp; Venue</h2>
+          </div>
+          <div class="px-6 py-5 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Date</label><input type="date" name="date" id="event-date" onchange="autoSetStatus()" class="form-input-bare"/></div>
+              <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Start Time</label><input type="time" name="time" id="event-time" onchange="autoSetStatus()" class="form-input-bare"/></div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">End Time</label>
+                <input type="time" name="endTime" id="event-end-time" onchange="autoSetStatus()" class="form-input-bare"/>
+                <p class="text-[11px] mt-1" style="color:var(--text-faint)">When event ends — auto-marks Completed.</p>
+              </div>
+            </div>
+
+            <!-- Venue free-text -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Event Location / Venue</label>
+              <input type="text" name="venue" placeholder="e.g. Municipal Gymnasium, School Auditorium, Hotel Function Hall" class="form-input-bare" maxlength="120"/>
+              <p class="text-[11px] mt-1.5" style="color:var(--text-faint)">Enter the exact venue or location of the event.</p>
+            </div>
+
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Max Contestants</label><input type="number" name="maxContestants" placeholder="e.g. 20" min="1" max="200" class="form-input-bare"/></div>
+          </div>
+        </div>
+
+        <div class="card-flat" id="prizes-rules-card">
+          <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+            <div class="w-8 h-8 grad-gold rounded-lg flex items-center justify-center shadow-sm">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+            </div>
+            <h2 class="font-bold text-slate-800">Prizes &amp; Rules</h2>
+          </div>
+          <div class="px-6 py-5 space-y-4">
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Prizes / Awards</label><textarea name="prizes" rows="3" placeholder="e.g. 1st Place — &#8369;10,000 + Crown" class="form-input-bare resize-none"></textarea></div>
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Rules &amp; Mechanics</label><textarea name="rules" rows="4" placeholder="List the competition rules..." class="form-input-bare resize-none"></textarea></div>
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Additional Notes</label><textarea name="notes" rows="2" class="form-input-bare resize-none"></textarea></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="space-y-5">
+        <!-- -- Event Series Options ------------------------------------- -->
+        <div class="card-flat" id="series-options-card">
+          <div class="px-6 py-4" style="border-bottom:1px solid var(--border)">
+            <h2 class="font-bold" style="color:var(--text-primary)">Event Series Options <span style="color:#64748b;font-weight:500;font-size:0.82rem">(optional)</span></h2>
+          </div>
+          <div class="px-6 py-5 space-y-4">
+            <!-- Mark as Series -->
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" name="isEventSeries" value="true" id="isSeriesCheck" onchange="toggleSeriesFields()" style="width:16px;height:16px;cursor:pointer"/>
+              <div>
+                <div style="font-weight:700;color:var(--text-primary)">Create as Event Series</div>
+                <div style="font-size:0.78rem;color:#64748b">This event will be a parent that groups multiple sub-events under it</div>
+              </div>
+            </label>
+            <!-- Sub-Events Inline Builder -->
+            <div id="subEventsBuilder" style="display:none;margin-top:12px">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <span style="font-size:0.78rem;font-weight:700;color:var(--text-primary)">Sub-Events</span>
+                <span id="subEventsCount" style="font-size:0.72rem;font-weight:600;padding:1px 8px;border-radius:999px;background:rgba(59,130,246,0.15);color:#93c5fd;border:1px solid rgba(59,130,246,0.25)">0 sub-events</span>
+              </div>
+              <div id="subEventRows"></div>
+              <button type="button" onclick="addSubEventRow()" class="btn-sm btn-sm-blue" style="margin-top:4px;font-size:0.78rem">
+                + Add Sub-Event
+              </button>
+            </div>
+            <input type="hidden" name="subEventsJson" id="subEventsJson"/>
+            <!-- Add to existing series -->
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color:#64748b">Add to Existing Series <span style="color:#94a3b8;font-weight:400">(optional)</span></label>
+              <select name="parentEventId" id="parentEventIdSelect" class="form-input-bare bg-white">
+                <option value="">— None (standalone event) —</option>
+                {{#each seriesEvents}}
+                <option value="{{id}}"{{#if (eq ../preParentId id)}} selected{{/if}}>{{name}}</option>
+                {{/each}}
+              </select>
+              <p style="font-size:0.75rem;color:#64748b;margin-top:4px">Select a parent series to nest this event under it</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-flat">
+          <div class="px-6 py-4 border-b border-slate-100"><h2 class="font-bold text-slate-800 text-sm flex items-center gap-2"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Ready to Create</h2></div>
+          <div class="px-6 py-4 space-y-2 text-sm text-slate-600">
+            <div class="flex items-center gap-2"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Saved to Firebase Firestore</div>
+            <div class="flex items-center gap-2"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Add contestants after creation</div>
+            <div class="flex items-center gap-2"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Criteria auto-set below — edit before saving</div>
+          </div>
+          <div class="px-6 pb-5 space-y-2">
+            <button type="submit" class="btn-primary w-full py-3 text-sm justify-center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>Create Event</button>
+            <a href="/events" class="btn-secondary w-full py-2.5 text-sm justify-center">Cancel</a>
+          </div>
+        </div>
+
+        <!-- -- Inline Criteria Builder -- -->
+        <div class="card-flat" id="criteria-builder-card">
+          <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2.5"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="19" cy="17" r="2.5"/><circle cx="6.5" cy="17" r="2.5"/></svg>
+              Scoring Criteria
+            </h2>
+            <div class="flex items-center gap-2">
+              <span id="criteria-weight-badge" class="text-xs font-extrabold px-2 py-0.5 rounded-full" style="background:rgba(139,92,246,0.15);color:#c4b5fd;border:1px solid rgba(139,92,246,0.3)">0 / 100%</span>
+            </div>
+          </div>
+
+          <!-- Multi-category toggle -->
+          <div class="px-5 py-3 flex items-center gap-3" style="border-bottom:1px solid rgba(255,255,255,0.06)">
+            <div class="flex-1">
+              <div class="text-xs font-bold" style="color:var(--text-primary)">Use Multi-Category Template</div>
+              <div class="text-[11px]" style="color:var(--text-muted)">Auto-fill 5 categories with preset criteria (Production Number, Festival Headdress, etc.)</div>
+            </div>
+            <button type="button" id="multi-cat-btn" onclick="toggleMultiCategory()"
+              class="flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition"
+              style="background:rgba(99,102,241,0.12);color:#a5b4fc;border:1px solid rgba(99,102,241,0.3)">
+              Enable
+            </button>
+          </div>
+          <!-- Multi-category preview (hidden by default) -->
+          <div id="multi-cat-preview" class="hidden px-5 py-3 space-y-3">
+            <div class="rounded-xl p-3" style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.15)">
+              <p class="text-xs font-bold mb-2" style="color:#a5b4fc">5 categories will be created after saving:</p>
+              <div class="space-y-1.5 text-[11px]" style="color:var(--text-secondary)">
+                <div class="flex items-center gap-2"><span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white flex-shrink-0" style="background:#4f46e5">1</span> Production Number (5 criteria)</div>
+                <div class="flex items-center gap-2"><span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white flex-shrink-0" style="background:#4f46e5">2</span> Festival Headdress (4 criteria)</div>
+                <div class="flex items-center gap-2"><span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white flex-shrink-0" style="background:#4f46e5">3</span> Denim Attire (5 criteria)</div>
+                <div class="flex items-center gap-2"><span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white flex-shrink-0" style="background:#4f46e5">4</span> Casual Wear (5 criteria)</div>
+                <div class="flex items-center gap-2"><span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white flex-shrink-0" style="background:#4f46e5">5</span> Long Gown (5 criteria)</div>
+              </div>
+            </div>
+            <input type="hidden" name="useMultiCategory" id="use-multi-cat" value=""/>
+          </div>
+
+          <div id="flat-criteria-section">
+            <!-- Load Preset dropdown -->
+            <div class="px-5 pt-3 pb-1 relative" id="preset-dropdown-wrap">
+              <button type="button" onclick="togglePresetDropdown()"
+                class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition"
+                style="background:rgba(139,92,246,0.1);color:#a78bfa;border:1px solid rgba(139,92,246,0.3)">
+                ?? Load Preset Criteria
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div id="preset-dropdown-menu" class="hidden absolute left-5 mt-1 z-10 rounded-xl overflow-hidden shadow-xl"
+                style="background:#111827;border:1px solid rgba(255,255,255,0.12);min-width:260px">
+                <div class="px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest" style="color:#64748b;border-bottom:1px solid rgba(255,255,255,0.07)">Digital / Creative Events</div>
+                <button type="button" onclick="loadDigitalPreset('logo')" class="preset-item w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-white/10 transition" style="color:#cbd5e1;background:transparent;border:none;cursor:pointer">?? Digital Logo Making</button>
+                <button type="button" onclick="loadDigitalPreset('photography')" class="preset-item w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-white/10 transition" style="color:#cbd5e1;background:transparent;border:none;cursor:pointer">?? Photography</button>
+                <button type="button" onclick="loadDigitalPreset('poster')" class="preset-item w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-white/10 transition" style="color:#cbd5e1;background:transparent;border:none;cursor:pointer">?? Digital Poster / Slogan</button>
+                <button type="button" onclick="loadDigitalPreset('video')" class="preset-item w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-white/10 transition" style="color:#cbd5e1;background:transparent;border:none;cursor:pointer">?? Short Video / Reel</button>
+                <div class="px-3 py-2 text-[10px] font-extrabold uppercase tracking-widest" style="color:#64748b;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07)">Pageant</div>
+                <button type="button" onclick="loadDigitalPreset('pageant_standard')" class="preset-item w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-white/10 transition" style="color:#cbd5e1;background:transparent;border:none;cursor:pointer">?? Pageant (Standard)</button>
+              </div>
+            </div>
+            <div class="px-5 py-2 text-xs" style="color:var(--text-muted)">Auto-filled from event type. Edit, remove, or add rows. Weights must total <strong style="color:#c4b5fd">100%</strong>.</div>
+            <!-- Column headers -->
+            <div class="px-5 flex items-center gap-2 mb-1">
+              <span class="flex-1 text-[10px] font-bold uppercase tracking-wider" style="color:var(--text-faint)">Criteria Name</span>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-center" style="width:76px;min-width:76px;color:var(--text-faint)">Weight%</span>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-center" style="width:76px;min-width:76px;color:var(--text-faint)">Max Pts</span>
+              <span style="width:28px"></span>
+            </div>
+            <!-- Criteria rows -->
+            <div id="criteria-rows" class="px-5 space-y-2 pb-2"></div>
+            <!-- Add row button -->
+            <div class="px-5 py-3">
+              <button type="button" onclick="addCriteriaRow()" class="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition"
+                style="background:rgba(139,92,246,0.08);color:#a78bfa;border:1.5px dashed rgba(139,92,246,0.3)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add Criteria Row
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- QR Code Preview Card -->
+        <div class="card-flat hidden" id="event-qr-card">
+          <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+            <div class="w-8 h-8 grad-purple rounded-lg flex items-center justify-center shadow-sm">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="5" y="5" width="3" height="3"/><rect x="16" y="5" width="3" height="3"/><rect x="16" y="16" width="3" height="3"/><rect x="5" y="16" width="3" height="3"/></svg>
+            </div>
+            <h2 class="font-bold text-slate-800">Event QR Code</h2>
+          </div>
+          <div class="px-6 py-5 text-center space-y-3">
+            <p class="text-xs text-slate-500 leading-relaxed">A QR code linking to this event's page will be generated automatically after you save. Share it with judges and participants for quick access.</p>
+            <div class="flex items-center justify-center w-full py-8 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50">
+              <div class="text-center">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" class="mx-auto mb-2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                <p class="text-xs text-slate-400 font-medium">Available after event is created</p>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-400">The QR will encode the direct URL to the event detail page.</p>
+          </div>
+        </div>
+
+        <!-- Payment QR Code toggle + card (opt-in) -->
+        <div class="hidden" id="payment-qr-toggle-wrap">
+          <button type="button"
+            onclick="document.getElementById('payment-qr-card').classList.remove('hidden');document.getElementById('payment-qr-toggle-wrap').classList.add('hidden')"
+            class="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition"
+            style="background:rgba(16,185,129,0.08);color:#6ee7b7;border:2px dashed rgba(16,185,129,0.3)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>
+            Add Payment QR Code (optional)
+          </button>
+        </div>
+
+        <!-- Payment QR Code Card -->
+        <div class="card-flat hidden" id="payment-qr-card" style="border-color:#d1fae5">
+          <div class="px-6 py-4 border-b border-emerald-100 flex items-center gap-3">
+            <div class="w-8 h-8 grad-green rounded-lg flex items-center justify-center shadow-sm">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </div>
+            <h2 class="font-bold text-slate-800">Payment QR Code</h2>
+          </div>
+          <div class="px-6 py-5 space-y-4">
+            <p class="text-xs text-slate-500 leading-relaxed">Upload a GCash, Maya, bank, or any payment QR so participants can scan and pay directly from the event page.</p>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Payment Method</label>
+              <select name="paymentMethod" class="form-input-bare bg-white">
+                <option value="">— None / Not Applicable —</option>
+                <option value="GCash">GCash</option>
+                <option value="Maya">Maya (PayMaya)</option>
+                <option value="BDO">BDO</option>
+                <option value="BPI">BPI</option>
+                <option value="UnionBank">UnionBank</option>
+                <option value="LandBank">LandBank</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Account Name</label>
+              <input type="text" name="paymentAccountName" placeholder="e.g. Juan Dela Cruz" class="form-input-bare"/>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Account Number / GCash No.</label>
+              <input type="text" name="paymentAccountNumber" placeholder="e.g. 09XX-XXX-XXXX" class="form-input-bare"/>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Upload QR Image</label>
+              <div id="create-qr-dropzone" onclick="document.getElementById('create-qr-file').click()"
+                class="flex flex-col items-center justify-center w-full py-6 rounded-xl border-2 border-dashed border-emerald-200 bg-emerald-50 cursor-pointer hover:bg-emerald-100 transition">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.5" class="mb-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <p class="text-xs text-emerald-700 font-semibold">Click to upload QR image</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">PNG, JPG up to 2MB</p>
+              </div>
+              <input type="file" id="create-qr-file" accept="image/png,image/jpeg,image/jpg,image/webp" class="hidden" onchange="handleCreateQRUpload(this)"/>
+              <!-- Hidden base64 input sent with the form -->
+              <input type="hidden" name="paymentQR" id="create-qr-b64"/>
+            </div>
+
+            <!-- Preview -->
+            <div id="create-qr-preview" class="hidden text-center space-y-2">
+              <img id="create-qr-img" src="" alt="Payment QR Preview" class="mx-auto rounded-xl border border-slate-200 shadow-sm" style="max-height:180px;max-width:180px;object-fit:contain"/>
+              <button type="button" onclick="clearCreateQR()" class="btn-sm btn-sm-red text-xs">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </form>
+</main>
+</div>
+<script>
+/* -- Auto-set status from date + time + endTime -- */
+function autoSetStatus() {
+  const statusSel = document.getElementById('event-status');
+  const dateEl    = document.getElementById('event-date');
+  const timeEl    = document.getElementById('event-time');
+  const endEl     = document.getElementById('event-end-time');
+  if (!statusSel || !dateEl || !dateEl.value) return;
+  if (statusSel.value === 'cancelled') return;
+
+  const now       = new Date();
+  const startStr  = dateEl.value + 'T' + (timeEl?.value || '00:00');
+  const startDt   = new Date(startStr);
+  const endDt     = (endEl?.value) ? new Date(dateEl.value + 'T' + endEl.value) : null;
+
+  if (endDt && now >= endDt)       statusSel.value = 'completed';
+  else if (now >= startDt)         statusSel.value = 'ongoing';
+  else                             statusSel.value = 'upcoming';
+}
+
+/* -- Set today as default date and auto-detect on load -- */
+document.addEventListener('DOMContentLoaded', () => {
+  const dateEl = document.getElementById('event-date');
+  if (dateEl && !dateEl.value) {
+    dateEl.value = new Date().toISOString().split('T')[0];
+    autoSetStatus();
+  }
+});
+
+/* -- Event type-based field visibility -- */
+// Types that need Prizes & Rules
+const PRIZE_TYPES   = ['pageant','talent','choral','dance','culinary','academic'];
+// Types that normally charge admission/registration (show Payment QR)
+const PAYMENT_TYPES = ['talent','cultural','choral','dance','culinary','booth','sports','academic','other'];
+
+function handleEventType(sel) {
+  const type = sel.value;
+
+  // Other LGU — show specify field
+  const otherWrap  = document.getElementById('other-lgu-wrap');
+  const otherInput = document.getElementById('other-lgu-input');
+  if (type === 'other') {
+    otherWrap.classList.remove('hidden');
+    otherInput.setAttribute('required', 'required');
+    otherInput.focus();
+  } else {
+    otherWrap.classList.add('hidden');
+    otherInput.removeAttribute('required');
+    otherInput.value = '';
+  }
+
+  // Prizes & Rules — show only for prize-based event types
+  const prizesCard = document.getElementById('prizes-rules-card');
+  if (prizesCard) {
+    prizesCard.classList.toggle('hidden', !PRIZE_TYPES.includes(type));
+  }
+
+  // Payment QR — show toggle button for payment types, not the card directly
+  const paymentCard   = document.getElementById('payment-qr-card');
+  const paymentToggle = document.getElementById('payment-qr-toggle-wrap');
+  const isPayment = PAYMENT_TYPES.includes(type);
+  if (paymentCard)   paymentCard.classList.add('hidden');       // always keep card hidden until toggled
+  if (paymentToggle) paymentToggle.classList.toggle('hidden', !isPayment);
+
+  // Event QR placeholder — hide always (generated after save)
+  const eventQrCard = document.getElementById('event-qr-card');
+  if (eventQrCard) eventQrCard.classList.add('hidden');
+}
+
+// Run on page load with default selected type
+document.addEventListener('DOMContentLoaded', () => {
+  const sel = document.getElementById('event-type-select');
+  if (sel) handleEventType(sel);
+});
+/* -- Cover Photo -- */
+function handleCoverUpload(input, previewId, placeholderId, b64Id) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 3 * 1024 * 1024) { alert('Image too large. Max 3MB.'); input.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById(b64Id).value = e.target.result;
+    const preview = document.getElementById(previewId);
+    preview.src = e.target.result;
+    preview.classList.remove('hidden');
+    document.getElementById(placeholderId).classList.add('hidden');
+    const clearBtn = document.getElementById(b64Id.replace('-b64','-clear'));
+    if (clearBtn) clearBtn.classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+function clearCover(previewId, placeholderId, b64Id, clearBtnId) {
+  document.getElementById(b64Id).value = '';
+  const preview = document.getElementById(previewId);
+  preview.src = '';
+  preview.classList.add('hidden');
+  document.getElementById(placeholderId).classList.remove('hidden');
+  document.getElementById(clearBtnId).classList.add('hidden');
+}
+
+/* -- Payment QR -- */
+function handleCreateQRUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) {
+    alert('Image too large. Max size is 2MB.');
+    input.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('create-qr-b64').value = e.target.result;
+    document.getElementById('create-qr-img').src = e.target.result;
+    document.getElementById('create-qr-preview').classList.remove('hidden');
+    document.getElementById('create-qr-dropzone').classList.add('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+function clearCreateQR() {
+  document.getElementById('create-qr-b64').value = '';
+  document.getElementById('create-qr-img').src = '';
+  document.getElementById('create-qr-preview').classList.add('hidden');
+  document.getElementById('create-qr-dropzone').classList.remove('hidden');
+  document.getElementById('create-qr-file').value = '';
+}
+
+/* ------------------------------------------------------------
+   INLINE CRITERIA BUILDER
+   ------------------------------------------------------------ */
+const CRITERIA_PRESETS = {
+  pageant: [
+    { name: 'Beauty of Face',     weight: 22, max: 100 },
+    { name: 'Beauty of Figure',   weight: 18, max: 100 },
+    { name: 'Poise & Bearing',    weight: 18, max: 100 },
+    { name: 'Intelligence & Q&A', weight: 18, max: 100 },
+    { name: 'Swimwear / Attire',  weight: 14, max: 100 },
+    { name: 'Audience Impact',    weight: 10, max: 100 },
+  ],
+  cultural: [
+    { name: 'Choreography',     weight: 30, max: 100 },
+    { name: 'Costume & Props',  weight: 25, max: 100 },
+    { name: 'Synchronization',  weight: 25, max: 100 },
+    { name: 'Showmanship',      weight: 20, max: 100 },
+  ],
+  float: [
+    { name: 'Design & Creativity', weight: 35, max: 100 },
+    { name: 'Theme Relevance',     weight: 30, max: 100 },
+    { name: 'Craftsmanship',       weight: 20, max: 100 },
+    { name: 'Overall Impact',      weight: 15, max: 100 },
+  ],
+  marching: [
+    { name: 'Musical Performance', weight: 35, max: 100 },
+    { name: 'Marching Precision',  weight: 30, max: 100 },
+    { name: 'Uniform & Appearance',weight: 20, max: 100 },
+    { name: 'Showmanship',         weight: 15, max: 100 },
+  ],
+  choral: [
+    { name: 'Tone & Quality',   weight: 30, max: 100 },
+    { name: 'Blend & Balance',  weight: 25, max: 100 },
+    { name: 'Diction & Clarity',weight: 25, max: 100 },
+    { name: 'Presentation',     weight: 20, max: 100 },
+  ],
+  dance: [
+    { name: 'Technical Skill',  weight: 30, max: 100 },
+    { name: 'Choreography',     weight: 30, max: 100 },
+    { name: 'Synchronization',  weight: 20, max: 100 },
+    { name: 'Stage Presence',   weight: 20, max: 100 },
+  ],
+  booth: [
+    { name: 'Display & Visual', weight: 30, max: 100 },
+    { name: 'Product Quality',  weight: 35, max: 100 },
+    { name: 'Relevance to Theme',weight: 20, max: 100 },
+    { name: 'Presentation',     weight: 15, max: 100 },
+  ],
+  sports: [
+    { name: 'Performance',      weight: 40, max: 100 },
+    { name: 'Sportsmanship',    weight: 30, max: 100 },
+    { name: 'Team Play',        weight: 30, max: 100 },
+  ],
+  academic: [
+    { name: 'Accuracy',         weight: 40, max: 100 },
+    { name: 'Speed',            weight: 30, max: 100 },
+    { name: 'Presentation',     weight: 30, max: 100 },
+  ],
+  culinary: [
+    { name: 'Taste & Flavor',   weight: 35, max: 100 },
+    { name: 'Presentation',     weight: 25, max: 100 },
+    { name: 'Creativity',       weight: 20, max: 100 },
+    { name: 'Cleanliness',      weight: 20, max: 100 },
+  ],
+  talent: [
+    { name: 'Skill & Technique',weight: 35, max: 100 },
+    { name: 'Originality',      weight: 25, max: 100 },
+    { name: 'Stage Presence',   weight: 25, max: 100 },
+    { name: 'Audience Impact',  weight: 15, max: 100 },
+  ],
+  other: [
+    { name: 'Criteria 1',       weight: 34, max: 100 },
+    { name: 'Criteria 2',       weight: 33, max: 100 },
+    { name: 'Criteria 3',       weight: 33, max: 100 },
+  ],
+};
+
+let _criteriaRows = [];
+
+function renderCriteriaRows() {
+  const container = document.getElementById('criteria-rows');
+  if (!container) return;
+  container.innerHTML = '';
+  _criteriaRows.forEach((row, i) => {
+    const div = document.createElement('div');
+    div.className = 'flex items-center gap-2';
+    div.innerHTML = `
+      <input type="text" name="criteria[name]" value="${row.name}"
+        placeholder="Criteria name" required
+        oninput="_criteriaRows[${i}].name=this.value"
+        class="form-input-bare flex-1 text-xs py-2" style="min-width:0;border-radius:12px"/>
+      <input type="number" name="criteria[weight]" value="${row.weight}"
+        min="1" max="100" placeholder="%" required
+        oninput="_criteriaRows[${i}].weight=Number(this.value)||0;updateWeightBadge()"
+        class="form-input-bare text-xs py-2 text-center" style="width:76px;min-width:76px;border-radius:12px"/>
+      <input type="number" name="criteria[max]" value="${row.max}"
+        min="1" placeholder="Max" required
+        oninput="_criteriaRows[${i}].max=Number(this.value)||100"
+        class="form-input-bare text-xs py-2 text-center" style="width:76px;min-width:76px;border-radius:12px"/>
+      <input type="hidden" name="criteria[desc]" value=""/>
+      <button type="button" onclick="removeCriteriaRow(${i})"
+        class="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full text-xs transition"
+        style="background:rgba(239,68,68,0.12);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>`;
+    container.appendChild(div);
+  });
+  updateWeightBadge();
+}
+
+function updateWeightBadge() {
+  const total = _criteriaRows.reduce((s, r) => s + (Number(r.weight) || 0), 0);
+  const badge = document.getElementById('criteria-weight-badge');
+  if (!badge) return;
+  badge.textContent = total + ' / 100%';
+  const ok = total === 100;
+  badge.style.background    = ok ? 'rgba(16,185,129,0.15)' : 'rgba(139,92,246,0.15)';
+  badge.style.color         = ok ? '#6ee7b7'               : '#c4b5fd';
+  badge.style.borderColor   = ok ? 'rgba(16,185,129,0.3)'  : 'rgba(139,92,246,0.3)';
+}
+
+// -- Multi-category template toggle ------------------------------------------
+const MULTI_CATEGORY_TEMPLATE = [
+  {
+    name: "Production Number", order: 1,
+    criteria: [
+      { name: "Stage Presence and Projection",     weight: 30, maxScore: 100 },
+      { name: "Dance Performance and Execution",   weight: 25, maxScore: 100 },
+      { name: "Energy and Audience Impact",        weight: 20, maxScore: 100 },
+      { name: "Coordination and Synchronization",  weight: 15, maxScore: 100 },
+      { name: "Overall Performance",               weight: 10, maxScore: 100 },
+    ]
+  },
+  {
+    name: "Festival Headdress", order: 2,
+    criteria: [
+      { name: "Creativity and Originality",              weight: 30, maxScore: 100 },
+      { name: "Craftsmanship and Quality",               weight: 25, maxScore: 100 },
+      { name: "Relevance to Festival Theme and Culture", weight: 25, maxScore: 100 },
+      { name: "Overall Appearance and Impact",           weight: 20, maxScore: 100 },
+    ]
+  },
+  {
+    name: "Denim Attire", order: 3,
+    criteria: [
+      { name: "Style and Fashion Sense",       weight: 30, maxScore: 100 },
+      { name: "Confidence and Stage Presence", weight: 25, maxScore: 100 },
+      { name: "Appropriateness of Attire",     weight: 20, maxScore: 100 },
+      { name: "Poise and Catwalk",             weight: 15, maxScore: 100 },
+      { name: "Overall Appearance",            weight: 10, maxScore: 100 },
+    ]
+  },
+  {
+    name: "Casual Wear", order: 4,
+    criteria: [
+      { name: "Style and Fashion Sense",       weight: 30, maxScore: 100 },
+      { name: "Confidence and Stage Presence", weight: 25, maxScore: 100 },
+      { name: "Appropriateness of Attire",     weight: 20, maxScore: 100 },
+      { name: "Poise and Catwalk",             weight: 15, maxScore: 100 },
+      { name: "Overall Appearance",            weight: 10, maxScore: 100 },
+    ]
+  },
+  {
+    name: "Long Gown", order: 5,
+    criteria: [
+      { name: "Elegance and Sophistication",     weight: 30, maxScore: 100 },
+      { name: "Beauty and Overall Appearance",   weight: 25, maxScore: 100 },
+      { name: "Stage Presence and Confidence",   weight: 20, maxScore: 100 },
+      { name: "Poise and Catwalk",               weight: 15, maxScore: 100 },
+      { name: "Gown Design and Styling",         weight: 10, maxScore: 100 },
+    ]
+  }
+];
+
+let _multiCategoryEnabled = false;
+
+window.toggleMultiCategory = function() {
+  _multiCategoryEnabled = !_multiCategoryEnabled;
+  const preview = document.getElementById('multi-cat-preview');
+  const flatSection = document.getElementById('flat-criteria-section');
+  const btn = document.getElementById('multi-cat-btn');
+  const hiddenInput = document.getElementById('use-multi-cat');
+
+  if (_multiCategoryEnabled) {
+    preview.classList.remove('hidden');
+    flatSection.classList.add('hidden');
+    btn.textContent = 'Disable';
+    btn.style.background = 'rgba(239,68,68,0.12)';
+    btn.style.color = '#fca5a5';
+    btn.style.borderColor = 'rgba(239,68,68,0.3)';
+    hiddenInput.value = JSON.stringify(MULTI_CATEGORY_TEMPLATE);
+  } else {
+    preview.classList.add('hidden');
+    flatSection.classList.remove('hidden');
+    btn.textContent = 'Enable';
+    btn.style.background = 'rgba(99,102,241,0.12)';
+    btn.style.color = '#a5b4fc';
+    btn.style.borderColor = 'rgba(99,102,241,0.3)';
+    hiddenInput.value = '';
+  }
+};
+
+window.addCriteriaRow = function() {
+  _criteriaRows.push({ name: '', weight: 0, max: 100 });
+  renderCriteriaRows();
+};
+
+window.removeCriteriaRow = function(i) {
+  _criteriaRows.splice(i, 1);
+  renderCriteriaRows();
+};
+
+function loadPreset(type) {
+  _criteriaRows = (CRITERIA_PRESETS[type] || CRITERIA_PRESETS.other).map(r => ({ ...r }));
+  renderCriteriaRows();
+}
+
+// Hook into the existing handleEventType function
+const _origHandleEventType = handleEventType;
+handleEventType = function(sel) {
+  _origHandleEventType(sel);
+  loadPreset(sel.value);
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  const sel = document.getElementById('event-type-select');
+  if (sel) loadPreset(sel.value);
+});
+
+/* -- Digital Event Preset Criteria -- */
+const DIGITAL_PRESETS = {
+  logo: [
+    { name: 'Creativity & Originality', weight: 30, max: 100 },
+    { name: 'Relevance to Theme',        weight: 25, max: 100 },
+    { name: 'Technical Execution',       weight: 25, max: 100 },
+    { name: 'Visual Impact',             weight: 20, max: 100 },
+  ],
+  photography: [
+    { name: 'Composition & Framing', weight: 30, max: 100 },
+    { name: 'Theme Relevance',        weight: 25, max: 100 },
+    { name: 'Technical Quality',      weight: 25, max: 100 },
+    { name: 'Creativity',             weight: 20, max: 100 },
+  ],
+  poster: [
+    { name: 'Message Clarity',  weight: 30, max: 100 },
+    { name: 'Visual Design',    weight: 25, max: 100 },
+    { name: 'Originality',      weight: 25, max: 100 },
+    { name: 'Impact & Appeal',  weight: 20, max: 100 },
+  ],
+  video: [
+    { name: 'Content & Storytelling',  weight: 30, max: 100 },
+    { name: 'Editing & Production',    weight: 25, max: 100 },
+    { name: 'Theme Relevance',         weight: 25, max: 100 },
+    { name: 'Creativity',              weight: 20, max: 100 },
+  ],
+  pageant_standard: [
+    { name: 'Beauty',             weight: 30, max: 100 },
+    { name: 'Intelligence',       weight: 25, max: 100 },
+    { name: 'Talent',             weight: 25, max: 100 },
+    { name: 'Poise & Personality',weight: 20, max: 100 },
+  ],
+};
+
+window.loadDigitalPreset = function(presetKey) {
+  const preset = DIGITAL_PRESETS[presetKey];
+  if (!preset) return;
+  _criteriaRows = preset.map(r => ({ ...r }));
+  renderCriteriaRows();
+  // Close dropdown and show flat criteria section
+  document.getElementById('preset-dropdown-menu').classList.add('hidden');
+  const flat = document.getElementById('flat-criteria-section');
+  if (flat) flat.classList.remove('hidden');
+  const multiPrev = document.getElementById('multi-cat-preview');
+  if (multiPrev) multiPrev.classList.add('hidden');
+  _multiCategoryEnabled = false;
+  const btn = document.getElementById('multi-cat-btn');
+  if (btn) {
+    btn.textContent = 'Enable';
+    btn.style.background = 'rgba(99,102,241,0.12)';
+    btn.style.color = '#a5b4fc';
+    btn.style.borderColor = 'rgba(99,102,241,0.3)';
+  }
+  document.getElementById('use-multi-cat').value = '';
+};
+
+window.togglePresetDropdown = function() {
+  const menu = document.getElementById('preset-dropdown-menu');
+  menu.classList.toggle('hidden');
+};
+
+// Close preset dropdown on outside click
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('preset-dropdown-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    const menu = document.getElementById('preset-dropdown-menu');
+    if (menu) menu.classList.add('hidden');
+  }
+});
+</script>
+<script>
+(function(){
+  var preParent = '{{preParentId}}';
+  if (preParent) {
+    var sel = document.getElementById('parentEventIdSelect');
+    if (sel) sel.value = preParent;
+  }
+})();
+
+// ---- Sub-Events Builder ----
+function toggleSeriesFields() {
+  var isChecked = document.getElementById('isSeriesCheck').checked;
+  document.getElementById('subEventsBuilder').style.display = isChecked ? 'block' : 'none';
+  if (!isChecked) {
+    // clear rows when unchecked
+    document.getElementById('subEventRows').innerHTML = '';
+    _subEventCount = 0;
+    updateSubEventCount();
+  }
+}
+
+var _subEventCount = 0;
+var _subEventTypeOptions = [
+  ['pageant','Pageant'],['cultural','Cultural'],['float','Float'],['marching','Marching'],
+  ['choral','Choral'],['dance','Dance'],['booth','Booth'],['sports','Sports'],
+  ['academic','Academic'],['culinary','Culinary'],['talent','Talent'],['other','Other']
+];
+
+function addSubEventRow() {
+  var rows = document.querySelectorAll('.sub-event-row').length;
+  if (rows >= 10) return;
+  _subEventCount++;
+  var id = 'ser' + _subEventCount;
+  var optHtml = _subEventTypeOptions.map(function(o){
+    return '<option value="'+o[0]+'">'+o[1]+'</option>';
+  }).join('');
+  var row = document.createElement('div');
+  row.className = 'sub-event-row';
+  row.id = id;
+  row.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:8px;';
+  row.innerHTML = [
+    '<input type="text" class="form-input-bare se-name" placeholder="e.g. Miss Fiesta 2026" style="flex:2;min-width:0" required/>',
+    '<input type="date" class="form-input-bare se-date" style="flex:1;min-width:0"/>',
+    '<select class="form-input-bare se-type" style="flex:1;min-width:0">'+optHtml+'</select>',
+    '<button type="button" onclick="removeSubEventRow(this)" style="flex-shrink:0;padding:4px 8px;border-radius:6px;background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);cursor:pointer;font-size:0.85rem;line-height:1" title="Remove">&#10005;</button>'
+  ].join('');
+  document.getElementById('subEventRows').appendChild(row);
+  updateSubEventCount();
+}
+
+function removeSubEventRow(btn) {
+  btn.closest('.sub-event-row').remove();
+  updateSubEventCount();
+}
+
+function updateSubEventCount() {
+  var rows = document.querySelectorAll('.sub-event-row').length;
+  document.getElementById('subEventsCount').textContent = rows + ' sub-event' + (rows !== 1 ? 's' : '');
+}
+
+// Serialize sub-events before form submit
+(function() {
+  var form = document.querySelector('form[action="/events"]');
+  if (form) {
+    form.addEventListener('submit', function() {
+      var rows = document.querySelectorAll('.sub-event-row');
+      var data = Array.from(rows).map(function(row) {
+        return {
+          name: row.querySelector('.se-name').value,
+          date: row.querySelector('.se-date').value,
+          type: row.querySelector('.se-type').value
+        };
+      }).filter(function(r) { return r.name.trim(); });
+      document.getElementById('subEventsJson').value = JSON.stringify(data);
+    });
+  }
+})();
+</script>
+
+</html>

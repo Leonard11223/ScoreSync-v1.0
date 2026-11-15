@@ -1,0 +1,601 @@
+﻿<!-- ═══════════════════════════════════════════════
+     ScoreSync · Premium Digital Stage Timer
+     ═══════════════════════════════════════════════ -->
+
+<div id="scoresync-timer-component" class="rounded-3xl overflow-hidden"
+  style="background:linear-gradient(160deg,#06080f 0%,#0a0f1e 100%);border:1px solid rgba(99,102,241,0.2);box-shadow:0 20px 60px rgba(0,0,0,0.7),0 0 0 1px rgba(99,102,241,0.06)">
+
+  <!-- ── Header bar ── -->
+  <div class="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-5 py-3"
+    style="border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(255,255,255,0.02)">
+    <div class="flex items-center gap-3 min-w-0">
+      <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+        style="background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.3)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="min-w-0">
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-extrabold tracking-tight" style="color:var(--text-primary)">Stage Timer</span>
+          <span id="st-status-badge" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider flex-shrink-0"
+            style="background:rgba(255,255,255,0.07);color:var(--text-muted);border:1px solid var(--border)">Ready</span>
+        </div>
+        <p id="st-current-stage-desc" class="text-[10px] mt-0.5 truncate" style="color:var(--text-faint)">Select a preset and press Start</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 flex-shrink-0">
+      <button type="button" onclick="ScoreSyncTimer.toggleSound()" id="st-btn-sound"
+        class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition"
+        style="background:rgba(255,255,255,0.05);color:var(--text-muted);border:1px solid var(--border)">
+        <span id="st-sound-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></span>
+        <span id="st-sound-label" class="hidden sm:inline">Sound</span>
+      </button>
+      <button type="button" onclick="ScoreSyncTimer.toggleFullscreen()"
+        class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition"
+        style="background:rgba(99,102,241,0.18);color:#a5b4fc;border:1px solid rgba(99,102,241,0.35)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+        <span class="hidden sm:inline">Fullscreen</span>
+      </button>
+      <button type="button" onclick="ScoreSyncTimer.toggleVisibility()" id="st-btn-visibility"
+        aria-controls="st-timer-body" aria-expanded="true"
+        class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition"
+        style="background:rgba(255,255,255,0.05);color:var(--text-secondary);border:1px solid var(--border)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l18 18"/><path d="M10.58 10.59a2 2 0 0 0 2.83 2.83"/><path d="M9.88 5.09A10.94 10.94 0 0 1 12 4.9c6.5 0 10 7.1 10 7.1a16.4 16.4 0 0 1-3.05 3.95"/><path d="M6.61 6.61C3.78 8.25 2 12 2 12s3.5 7.1 10 7.1a10.8 10.8 0 0 0 4.08-.78"/></svg>
+        <span id="st-visibility-label">Hide</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="st-timer-body" aria-hidden="false">
+  <!-- ── Stage + Contestant row ── -->
+  <div class="flex flex-wrap items-center gap-2 px-4 sm:px-5 py-2.5"
+    style="border-bottom:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.01)">
+    <select id="st-stage-select" onchange="ScoreSyncTimer.onStageSelectChange(this.value)"
+      class="flex-1 min-w-[140px] px-3 py-2 rounded-xl text-xs font-bold focus:outline-none"
+      style="background:#0d1424;color:#c7d2fe;border:1px solid rgba(99,102,241,0.25)">
+      <optgroup label="Pageant" style="background:#0d1424">
+        <option value="60"  data-name="Q&A Round (1 min)" selected>Q&amp;A Round — 1:00</option>
+        <option value="180" data-name="Talent (3 mins)">Talent Showcase — 3:00</option>
+        <option value="90"  data-name="Runway (1.5 mins)">Runway / Casual — 1:30</option>
+        <option value="120" data-name="Evening Gown (2 mins)">Evening Gown — 2:00</option>
+        <option value="300" data-name="Speech (5 mins)">Speech / Platform — 5:00</option>
+        <option value="600" data-name="Intermission (10 mins)">Intermission — 10:00</option>
+        <option value="30"  data-name="Speed Round (30s)">Speed Round — 0:30</option>
+      </optgroup>
+      <optgroup label="Custom" style="background:#0d1424">
+        <option value="custom">Custom Duration…</option>
+      </optgroup>
+    </select>
+    <!-- Custom -->
+    <div id="st-custom-controls" class="hidden items-center gap-1.5">
+      <input type="number" id="st-custom-min" min="0" max="120" value="3" class="w-12 px-2 py-1.5 rounded-lg text-center text-xs font-bold focus:outline-none" style="background:#0d1424;color:var(--text-primary);border:1px solid rgba(255,255,255,0.12)"/>
+      <span style="color:var(--text-faint)">:</span>
+      <input type="number" id="st-custom-sec" min="0" max="59" value="0" class="w-12 px-2 py-1.5 rounded-lg text-center text-xs font-bold focus:outline-none" style="background:#0d1424;color:var(--text-primary);border:1px solid rgba(255,255,255,0.12)"/>
+      <button type="button" onclick="ScoreSyncTimer.applyCustomTime()" class="px-3 py-1.5 rounded-lg text-xs font-extrabold" style="background:#4f46e5;color:#fff">Set</button>
+    </div>
+    <!-- Contestant input -->
+    <div class="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 min-w-[120px]" style="background:rgba(255,255,255,0.04);border:1px solid var(--border)">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <input type="text" id="st-contestant-input" placeholder="Contestant…" class="bg-transparent text-xs font-semibold focus:outline-none w-full" style="color:var(--text-secondary)"/>
+    </div>
+    <!-- Adjust buttons -->
+    <div class="flex items-center gap-1 flex-shrink-0">
+      <button type="button" onclick="ScoreSyncTimer.adjustTime(-15)" class="px-2 py-1.5 rounded-lg text-[10px] font-extrabold" style="background:rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.2)">−15s</button>
+      <button type="button" onclick="ScoreSyncTimer.adjustTime(15)"  class="px-2 py-1.5 rounded-lg text-[10px] font-extrabold" style="background:rgba(16,185,129,0.1);color:#6ee7b7;border:1px solid rgba(16,185,129,0.2)">+15s</button>
+      <button type="button" onclick="ScoreSyncTimer.adjustTime(60)"  class="px-2 py-1.5 rounded-lg text-[10px] font-extrabold" style="background:rgba(99,102,241,0.1);color:#a5b4fc;border:1px solid rgba(99,102,241,0.2)">+1m</button>
+    </div>
+  </div>
+
+  <!-- ══ PREMIUM DIGITAL DISPLAY ══ -->
+  <div class="relative flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8"
+    style="background:radial-gradient(ellipse at 50% 0%,rgba(99,102,241,0.07) 0%,transparent 65%)">
+
+    <!-- Stage label -->
+    <div class="mb-4 text-center">
+      <span id="st-active-label" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-widest"
+        style="background:rgba(99,102,241,0.12);color:#a5b4fc;border:1px solid rgba(99,102,241,0.22)">Q&amp;A Round (1 min)</span>
+      <div id="st-contestant-display" class="text-xs font-semibold mt-2 min-h-[18px]" style="color:#6366f1"></div>
+    </div>
+
+    <!-- ── Digital clock digits ── -->
+    <div class="relative w-full flex items-center justify-center gap-2 sm:gap-3 mb-4">
+
+      <!-- Glow backdrop -->
+      <div class="absolute inset-0 rounded-2xl pointer-events-none" id="st-glow-bg"
+        style="background:radial-gradient(ellipse at 50% 50%,rgba(99,102,241,0.12) 0%,transparent 70%);transition:background 0.4s"></div>
+
+      <!-- MM : SS display -->
+      <div class="relative flex items-center gap-1.5 sm:gap-2 z-10">
+
+        <!-- Minutes tens -->
+        <div class="digit-cell" id="dc-m1"><span class="digit-val" id="dv-m1">0</span></div>
+        <!-- Minutes ones -->
+        <div class="digit-cell" id="dc-m2"><span class="digit-val" id="dv-m2">1</span></div>
+
+        <!-- Colon -->
+        <div class="flex flex-col items-center gap-1.5 sm:gap-2 mx-1 sm:mx-2 self-center" style="margin-top:0">
+          <div id="colon-dot1" class="rounded-full transition-opacity duration-500" style="width:clamp(5px,1.2vw,8px);height:clamp(5px,1.2vw,8px);background:#6366f1;box-shadow:0 0 8px rgba(99,102,241,0.8)"></div>
+          <div id="colon-dot2" class="rounded-full transition-opacity duration-500" style="width:clamp(5px,1.2vw,8px);height:clamp(5px,1.2vw,8px);background:#6366f1;box-shadow:0 0 8px rgba(99,102,241,0.8)"></div>
+        </div>
+
+        <!-- Seconds tens -->
+        <div class="digit-cell" id="dc-s1"><span class="digit-val" id="dv-s1">0</span></div>
+        <!-- Seconds ones -->
+        <div class="digit-cell" id="dc-s2"><span class="digit-val" id="dv-s2">0</span></div>
+
+      </div>
+    </div>
+
+    <!-- Sub-labels under clock -->
+    <div class="flex items-center justify-between w-full max-w-sm px-1 mb-5">
+      <div id="st-subtext" class="text-[10px] font-extrabold uppercase tracking-wider" style="color:var(--text-faint)">Time Remaining</div>
+      <div id="st-overtime-label" class="hidden text-[10px] font-black uppercase tracking-wider animate-pulse" style="color:#ef4444">OVERTIME</div>
+      <div id="st-progress-percent-badge" class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full" style="background:rgba(99,102,241,0.15);color:#a5b4fc;border:1px solid rgba(99,102,241,0.25)">100% Left</div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="w-full max-w-sm space-y-1.5">
+      <div class="flex items-center justify-between text-[10px] mb-1" style="color:var(--text-faint)">
+        <span id="st-progress-time-ratio" class="font-mono" style="color:var(--text-faint)">00:00 / 01:00</span>
+        <span id="st-progress-dot" class="w-1.5 h-1.5 rounded-full" style="background:#6366f1"></span>
+      </div>
+      <div class="relative h-2.5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.05);border:1px solid var(--border-subtle)">
+        <div id="st-linear-progress" class="h-full rounded-full transition-all duration-300"
+          style="width:100%;background:linear-gradient(90deg,#4f46e5,#818cf8)"></div>
+        <!-- Shimmer -->
+        <div class="absolute inset-0 rounded-full" style="background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.08) 50%,transparent 100%);animation:shimmer 2s infinite linear"></div>
+      </div>
+      <div class="flex justify-between text-[9px] font-bold px-0.5" style="color:#1e2740">
+        <span>Start</span><span>75%</span><span>50%</span><span>25%</span><span>0s</span>
+      </div>
+    </div>
+
+    <!-- Control buttons -->
+    <div class="flex items-center gap-2 sm:gap-3 mt-5 flex-wrap justify-center">
+      <button type="button" id="st-btn-reset" onclick="ScoreSyncTimer.reset()"
+        class="flex items-center gap-1.5 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition active:scale-95"
+        style="background:rgba(255,255,255,0.05);color:var(--text-secondary);border:1px solid rgba(255,255,255,0.09)">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Reset
+      </button>
+
+      <button type="button" id="st-btn-toggle" onclick="ScoreSyncTimer.togglePlay()"
+        class="flex items-center gap-2 px-6 sm:px-10 py-3 rounded-2xl font-extrabold text-sm transition active:scale-95"
+        style="background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;box-shadow:0 8px 32px rgba(79,70,229,0.45);border:1px solid rgba(99,102,241,0.5)">
+        <span id="st-play-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>
+        <span id="st-play-label">Start Timer</span>
+      </button>
+
+      <button type="button" id="st-btn-log" onclick="ScoreSyncTimer.logAndNext()"
+        class="flex items-center gap-1.5 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition active:scale-95"
+        style="background:rgba(16,185,129,0.1);color:#6ee7b7;border:1px solid rgba(16,185,129,0.22)">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Log &amp; Next
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Stage Log ── -->
+  <div class="px-4 sm:px-5 py-3" style="border-top:1px solid rgba(255,255,255,0.04);background:rgba(0,0,0,0.18)">
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center gap-2">
+        <span class="text-[9px] font-extrabold uppercase tracking-widest" style="color:var(--text-faint)">Completed Stages</span>
+        <span id="st-log-count" class="px-1.5 py-0.5 rounded-full text-[9px] font-bold" style="background:rgba(255,255,255,0.06);color:var(--text-muted)">0</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="ScoreSyncTimer.copyLogs()" class="text-[10px] font-bold flex items-center gap-1 transition" style="color:var(--text-faint)" onmouseover="this.style.color='#818cf8'" onmouseout="this.style.color='#374151'">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy
+        </button>
+        <button onclick="ScoreSyncTimer.clearLogs()" class="text-[10px] font-bold transition" style="color:var(--text-faint)" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#374151'">Clear</button>
+      </div>
+    </div>
+    <div id="st-log-container" class="space-y-1 max-h-28 overflow-y-auto pr-1">
+      <div id="st-log-empty" class="py-3 text-center text-[10px] italic" style="color:var(--text-faint)">No stages logged yet.</div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<!-- ═══ FULLSCREEN ════════════════════════════════════════════ -->
+<div id="scoresync-fullscreen-modal"
+  class="fixed inset-0 z-50 hidden flex-col items-center justify-between p-4 sm:p-8 md:p-12"
+  style="background:radial-gradient(ellipse at 50% 30%,#0a0c30 0%,#020408 60%,#000 100%)">
+
+  <!-- Top bar -->
+  <div class="w-full flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl flex items-center justify-center" style="background:rgba(99,102,241,0.25);border:1px solid rgba(99,102,241,0.4)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#818cf8"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+      </div>
+      <div>
+        <h1 class="text-base sm:text-lg font-black text-white tracking-tight">ScoreSync Stage Timer</h1>
+        <p id="st-fs-stage-sub" class="text-[11px]" style="color:var(--text-faint)">Official Competition Display</p>
+      </div>
+    </div>
+    <button onclick="ScoreSyncTimer.toggleFullscreen()"
+      class="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold"
+      style="background:rgba(255,255,255,0.07);color:var(--text-secondary);border:1px solid rgba(255,255,255,0.10)">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <span class="hidden sm:inline">Exit (ESC)</span>
+    </button>
+  </div>
+
+  <!-- Center -->
+  <div class="flex flex-col items-center justify-center text-center w-full max-w-5xl flex-1">
+    <div id="st-fs-contestant" class="text-xl sm:text-3xl md:text-4xl font-extrabold mb-3 min-h-[40px]" style="color:#6366f1"></div>
+    <div id="st-fs-stage-name" class="inline-block px-5 py-1.5 rounded-full text-sm sm:text-lg font-extrabold mb-8"
+      style="background:rgba(99,102,241,0.15);color:#a5b4fc;border:1px solid rgba(99,102,241,0.3)">Q&amp;A Round (1 min)</div>
+
+    <!-- MASSIVE digital digits fullscreen -->
+    <div class="flex items-center justify-center gap-2 sm:gap-4 md:gap-6">
+      <div class="digit-cell-fs" id="dc-fs-m1"><span class="digit-val-fs" id="dv-fs-m1">0</span></div>
+      <div class="digit-cell-fs" id="dc-fs-m2"><span class="digit-val-fs" id="dv-fs-m2">1</span></div>
+      <div class="flex flex-col items-center gap-2 sm:gap-3 md:gap-4 mx-1 sm:mx-2 md:mx-3">
+        <div id="colon-fs1" class="rounded-full transition-opacity duration-500" style="width:clamp(8px,2vw,16px);height:clamp(8px,2vw,16px);background:#6366f1;box-shadow:0 0 20px rgba(99,102,241,0.9)"></div>
+        <div id="colon-fs2" class="rounded-full transition-opacity duration-500" style="width:clamp(8px,2vw,16px);height:clamp(8px,2vw,16px);background:#6366f1;box-shadow:0 0 20px rgba(99,102,241,0.9)"></div>
+      </div>
+      <div class="digit-cell-fs" id="dc-fs-s1"><span class="digit-val-fs" id="dv-fs-s1">0</span></div>
+      <div class="digit-cell-fs" id="dc-fs-s2"><span class="digit-val-fs" id="dv-fs-s2">0</span></div>
+    </div>
+
+    <div id="st-fs-status" class="text-xs sm:text-base md:text-xl font-bold tracking-widest uppercase mt-5 sm:mt-8" style="color:var(--text-faint)">
+      Ready · Press Spacebar to Start
+    </div>
+
+    <!-- Progress -->
+    <div class="w-full max-w-2xl mt-6 sm:mt-10 rounded-2xl p-4 sm:p-5" style="background:rgba(255,255,255,0.03);border:1px solid var(--border)">
+      <div class="flex items-center justify-between text-xs font-bold mb-3">
+        <span id="st-fs-progress-time-ratio" class="font-mono" style="color:var(--text-faint)">00:00 / 01:00</span>
+        <span id="st-fs-progress-percent" class="px-3 py-1 rounded-full text-xs font-extrabold" style="background:rgba(99,102,241,0.15);color:#a5b4fc;border:1px solid rgba(99,102,241,0.3)">100% Left</span>
+      </div>
+      <div class="h-4 sm:h-5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.05);border:1px solid var(--border)">
+        <div id="st-fs-progress" class="h-full rounded-full transition-all duration-300" style="width:100%;background:linear-gradient(90deg,#4f46e5,#818cf8)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom controls -->
+  <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-4 w-full pt-4 sm:pt-6" style="border-top:1px solid rgba(255,255,255,0.06)">
+    <button onclick="ScoreSyncTimer.reset()" class="btn-sm btn-sm-gray">Reset</button>
+    <button onclick="ScoreSyncTimer.togglePlay()" id="st-fs-btn-toggle"
+      class="btn-sm btn-solid-indigo px-10 text-base font-black">
+      <span id="st-fs-play-label">Start Timer</span>
+    </button>
+    <button onclick="ScoreSyncTimer.adjustTime(30)" class="btn-sm btn-sm-indigo">+30s</button>
+    <button onclick="ScoreSyncTimer.logAndNext()" class="btn-sm btn-sm-green">Log &amp; Next</button>
+  </div>
+</div>
+
+<style>
+/* ── Single-box digit cells ── */
+.digit-cell {
+  width: clamp(44px,8vw,72px);
+  height: clamp(64px,12vw,108px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: linear-gradient(180deg,#0d1220 0%,#0a0f1e 100%);
+  border: 1px solid rgba(99,102,241,0.22);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+  position: relative;
+  overflow: hidden;
+}
+/* horizontal divider line in center */
+.digit-cell::after {
+  content: '';
+  position: absolute;
+  left: 8%; right: 8%;
+  top: calc(50% - 0.5px);
+  height: 1px;
+  background: rgba(0,0,0,0.5);
+  z-index: 2;
+}
+.digit-val {
+  font-family: 'SF Mono','Roboto Mono','Courier New',monospace;
+  font-size: clamp(2rem,6vw,4.5rem);
+  font-weight: 900;
+  line-height: 1;
+  color: #e2e8f0;
+  text-shadow: 0 0 20px rgba(99,102,241,0.7), 0 0 40px rgba(99,102,241,0.3);
+  letter-spacing: -2px;
+  user-select: none;
+  display: block;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  position: relative;
+  z-index: 3;
+}
+.digit-val.flipping {
+  animation: digitFlip 0.25s ease;
+}
+@keyframes digitFlip {
+  0%   { transform: scaleY(1);    opacity: 1; }
+  40%  { transform: scaleY(0.05); opacity: 0.3; }
+  60%  { transform: scaleY(0.05); opacity: 0.3; }
+  100% { transform: scaleY(1);    opacity: 1; }
+}
+
+/* Fullscreen digit cells */
+.digit-cell-fs {
+  width: clamp(60px,15vw,180px);
+  height: clamp(90px,22vw,260px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  background: linear-gradient(180deg,#080c18,#0a0e1c);
+  border: 1px solid rgba(99,102,241,0.28);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.03), 0 0 60px rgba(99,102,241,0.08);
+  position: relative;
+  overflow: hidden;
+}
+.digit-cell-fs::after {
+  content: '';
+  position: absolute;
+  left: 8%; right: 8%;
+  top: calc(50% - 0.5px);
+  height: 1px;
+  background: rgba(0,0,0,0.6);
+  z-index: 2;
+}
+.digit-val-fs {
+  font-family: 'SF Mono','Roboto Mono','Courier New',monospace;
+  font-size: clamp(3.5rem,12vw,11rem);
+  font-weight: 900;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 0 40px rgba(99,102,241,0.9), 0 0 80px rgba(99,102,241,0.5), 0 0 120px rgba(99,102,241,0.2);
+  letter-spacing: -4px;
+  user-select: none;
+  display: block;
+  position: relative;
+  z-index: 3;
+}
+.digit-val-fs.flipping {
+  animation: digitFlip 0.3s ease;
+}
+
+/* Warning / overtime color overrides */
+.digit-warn .digit-val, .digit-warn .digit-val-fs { text-shadow: 0 0 20px rgba(245,158,11,0.9),0 0 40px rgba(245,158,11,0.5); color:#fbbf24; }
+.digit-over .digit-val, .digit-over .digit-val-fs { text-shadow: 0 0 20px rgba(239,68,68,0.9), 0 0 40px rgba(239,68,68,0.5); color:#f87171; }
+
+/* Shimmer animation on progress bar */
+@keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+</style>
+
+<script>
+window.ScoreSyncTimer = (function () {
+  const CIRC = 603.2;
+
+  let total     = 60;
+  let remaining = 60;
+  let running   = false;
+  let overtime  = false;
+  let tid       = null;
+  let sound     = true;
+  let logs      = [];
+  let stage     = 'Q&A Round (1 min)';
+  let actx      = null;
+  let prevDigits = { m1:'', m2:'', s1:'', s2:'' };
+
+  // ── Audio ──
+  function getACtx() {
+    if (!actx) { const AC=window.AudioContext||window.webkitAudioContext; if(AC) actx=new AC(); }
+    if (actx?.state==='suspended') actx.resume();
+    return actx;
+  }
+  function tone(freq,type,dur,delay=0) {
+    if (!sound) return;
+    try {
+      const ctx=getACtx(); if(!ctx) return;
+      setTimeout(()=>{ const o=ctx.createOscillator(),g=ctx.createGain(); o.type=type; o.frequency.setValueAtTime(freq,ctx.currentTime); g.gain.setValueAtTime(0.22,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+dur); },delay);
+    } catch(e){}
+  }
+  function beepWarn()  { tone(660,'sine',0.12); }
+  function beepFinal() { tone(880,'square',0.18,0); tone(880,'square',0.18,220); tone(1046,'square',0.4,440); }
+
+  // ── Format ──
+  function fmt(s) {
+    const neg=s<0, a=Math.abs(s);
+    return (neg?'+':'')+String(Math.floor(a/60)).padStart(2,'0')+':'+String(a%60).padStart(2,'0');
+  }
+
+  // ── Flip digit animation ──
+  function flipDigit(valId, newChar) {
+    const el = document.getElementById(valId);
+    if (!el || el.textContent === newChar) return;
+    el.classList.remove('flipping');
+    // Force reflow
+    void el.offsetWidth;
+    el.textContent = newChar;
+    el.classList.add('flipping');
+    el.addEventListener('animationend', () => el.classList.remove('flipping'), { once: true });
+  }
+
+  function setDigits(secs, isFs) {
+    const a  = Math.abs(secs);
+    const mm = String(Math.floor(a/60)).padStart(2,'0');
+    const ss = String(a%60).padStart(2,'0');
+    const prefix = isFs ? 'dv-fs-' : 'dv-';
+
+    flipDigit(prefix+'m1', mm[0]);
+    flipDigit(prefix+'m2', mm[1]);
+    flipDigit(prefix+'s1', ss[0]);
+    flipDigit(prefix+'s2', ss[1]);
+
+    // Update glow color on cells
+    const warn = secs <= 10 && secs >= 0;
+    const over = secs < 0;
+    const cellPrefix = isFs ? 'dc-fs-' : 'dc-';
+    ['m1','m2','s1','s2'].forEach(k => {
+      const cell = document.getElementById(cellPrefix + k);
+      if (!cell) return;
+      cell.classList.toggle('digit-warn', warn && !over);
+      cell.classList.toggle('digit-over', over);
+    });
+  }
+
+  // ── Colour state ──
+  function colours() {
+    if (remaining<0)      return { bar:'linear-gradient(90deg,#ef4444,#dc2626)', text:'#ef4444', shadow:'rgba(239,68,68,0.5)', pct:'rgba(239,68,68,0.15)', pctTxt:'#fca5a5', pctBdr:'rgba(239,68,68,0.3)' };
+    if (remaining<=10)    return { bar:'linear-gradient(90deg,#f59e0b,#ef4444)',  text:'#fbbf24', shadow:'rgba(245,158,11,0.5)', pct:'rgba(245,158,11,0.15)', pctTxt:'#fcd34d', pctBdr:'rgba(245,158,11,0.3)' };
+    if (remaining/total<=0.25) return { bar:'linear-gradient(90deg,#f97316,#f59e0b)', text:'#fb923c', shadow:'rgba(249,115,22,0.4)', pct:'rgba(249,115,22,0.15)', pctTxt:'#fdba74', pctBdr:'rgba(249,115,22,0.3)' };
+    return { bar:'linear-gradient(90deg,#4f46e5,#818cf8)', text:'#e2e8f0', shadow:'rgba(99,102,241,0.4)', pct:'rgba(99,102,241,0.15)', pctTxt:'#a5b4fc', pctBdr:'rgba(99,102,241,0.25)' };
+  }
+
+  // ── Draw ──
+  function draw() {
+    const c  = colours();
+    const f  = remaining<0 ? 0 : Math.min(1, remaining/total);
+    const pct= Math.round(f*100);
+    const el = id=>document.getElementById(id);
+
+    // Update digits (both compact + fullscreen)
+    setDigits(remaining, false);
+    setDigits(remaining, true);
+
+    // Colon blink when running
+    const colonOpacity = running ? (remaining%2===0?'1':'0.2') : '1';
+    ['colon-dot1','colon-dot2','colon-fs1','colon-fs2'].forEach(id=>{ const e=el(id); if(e) e.style.opacity=colonOpacity; });
+
+    // Progress bars
+    ['st-linear-progress','st-fs-progress'].forEach(id=>{ const e=el(id); if(!e) return; e.style.width=(remaining<0?100:pct)+'%'; e.style.background=remaining<0?'linear-gradient(90deg,#ef4444,#dc2626)':c.bar; });
+
+    // Percent badge
+    const badgeTxt = remaining<0?`+${Math.abs(remaining)}s OVERTIME`:`${pct}% Left`;
+    ['st-progress-percent-badge','st-fs-progress-percent'].forEach(id=>{ const e=el(id); if(!e) return; e.textContent=badgeTxt; e.style.background=c.pct; e.style.color=c.pctTxt; e.style.borderColor=c.pctBdr; });
+
+    // Time ratio
+    const elapsed=Math.max(0,total-remaining);
+    ['st-progress-time-ratio','st-fs-progress-time-ratio'].forEach(id=>{ const e=el(id); if(e) e.textContent=fmt(elapsed)+' / '+fmt(total); });
+
+    // Status dot
+    ['st-progress-dot','st-fs-progress-dot'].forEach(id=>{ const e=el(id); if(e) e.style.background=remaining<0?'#ef4444':remaining<=10?'#f59e0b':'#6366f1'; });
+
+    // Subtext
+    const sub = remaining<0?'Overtime':running?'Time Remaining':remaining===total?'Ready':'Paused';
+    if(el('st-subtext')) el('st-subtext').textContent=sub;
+    const fsSt = remaining<0?'OVERTIME — Stage Exceeded':running?'Running · Spacebar to Pause':remaining===total?'Ready · Press Spacebar to Start':'Paused · Press Spacebar to Resume';
+    if(el('st-fs-status')) el('st-fs-status').textContent=fsSt;
+
+    // Overtime label
+    const ot=el('st-overtime-label'); if(ot) ot.classList.toggle('hidden',remaining>=0);
+
+    // Status badge
+    const sb=el('st-status-badge');
+    if(sb){ if(remaining<0){sb.textContent='OVERTIME';sb.style.background='rgba(239,68,68,0.2)';sb.style.color='#fca5a5';sb.style.borderColor='rgba(239,68,68,0.3)';}else if(!running){sb.textContent=remaining===total?'Ready':'Paused';sb.style.background='rgba(255,255,255,0.07)';sb.style.color='#64748b';sb.style.borderColor='rgba(255,255,255,0.08)';}else if(remaining<=10){sb.textContent='FINAL 10s';sb.style.background='rgba(245,158,11,0.2)';sb.style.color='#fcd34d';sb.style.borderColor='rgba(245,158,11,0.3)';}else{sb.textContent='RUNNING';sb.style.background='rgba(16,185,129,0.2)';sb.style.color='#6ee7b7';sb.style.borderColor='rgba(16,185,129,0.3)';} }
+
+    // Play buttons
+    const icon=running?'<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>':'<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+    const lbl=running?'Pause':remaining<total?'Resume':'Start Timer';
+    if(el('st-play-icon')) el('st-play-icon').innerHTML=icon;
+    if(el('st-play-label')) el('st-play-label').textContent=lbl;
+    if(el('st-fs-play-label')) el('st-fs-play-label').textContent=lbl;
+
+    // Contestant
+    const cval=(el('st-contestant-input')?.value||'').trim();
+    if(el('st-contestant-display')) el('st-contestant-display').textContent=cval?`On stage: ${cval}`:'';
+    if(el('st-fs-contestant')) el('st-fs-contestant').textContent=cval?`On Stage: ${cval}`:'';
+    ['st-active-label','st-fs-stage-name'].forEach(id=>{ const e=el(id); if(e) e.textContent=stage; });
+    if(el('st-current-stage-desc')) el('st-current-stage-desc').textContent=stage;
+    if(el('st-fs-stage-sub')) el('st-fs-stage-sub').textContent='Official Competition Display — '+stage;
+
+    // Glow bg color
+    const gb=el('st-glow-bg');
+    if(gb){ const glowColor=remaining<0?'rgba(239,68,68,0.12)':remaining<=10?'rgba(245,158,11,0.1)':'rgba(99,102,241,0.12)'; gb.style.background=`radial-gradient(ellipse at 50% 50%,${glowColor} 0%,transparent 70%)`; }
+  }
+
+  // ── Tick ──
+  function tick() {
+    if (remaining>0) {
+      remaining--;
+      if(remaining===10) beepWarn();
+      if(remaining===3)  { tone(660,'sine',0.08,0); tone(660,'sine',0.08,200); tone(660,'sine',0.08,400); }
+      if(remaining===0)  { beepFinal(); onEventTimerEnd(); }
+    } else { overtime=true; remaining--; }
+    draw();
+  }
+
+  // ── Timer end ──
+  function onEventTimerEnd() {
+    const box=document.getElementById('st-log-container');
+    const emp=document.getElementById('st-log-empty');
+    if(emp) emp.classList.add('hidden');
+    const cnt=document.getElementById('st-log-count');
+    if(box) { const row=document.createElement('div'); row.className='flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold'; row.style.cssText='background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#6ee7b7'; row.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Stage timer reached 00:00'; box.insertBefore(row,box.firstChild); if(cnt) cnt.textContent=parseInt(cnt.textContent||'0')+1; }
+    clearInterval(tid); tid=null; running=false;
+    if(typeof window._onTimerEventEnd==='function') window._onTimerEventEnd();
+  }
+
+  // ── Public API ──
+  return {
+    togglePlay() { if(running){clearInterval(tid);tid=null;running=false;}else{getACtx();tid=setInterval(tick,1000);running=true;} draw(); },
+    reset() { clearInterval(tid);tid=null;running=false;overtime=false;remaining=total; draw(); },
+    adjustTime(s) { remaining=Math.max(-3600,remaining+s); if(!running) total=Math.max(1,total+s); draw(); },
+    onStageSelectChange(v) {
+      const sel=document.getElementById('st-stage-select');
+      const opt=sel?.options[sel.selectedIndex];
+      const cc=document.getElementById('st-custom-controls');
+      if(v==='custom'){if(cc){cc.style.display='flex';cc.classList.remove('hidden');}return;}
+      if(cc){cc.style.display='none';cc.classList.add('hidden');}
+      const secs=parseInt(v,10)||60;
+      stage=opt?.dataset.name||`${secs}s Stage`;
+      this.reset(); total=secs; remaining=secs; draw();
+    },
+    applyCustomTime() {
+      const m=parseInt(document.getElementById('st-custom-min')?.value||'0',10);
+      const s=parseInt(document.getElementById('st-custom-sec')?.value||'0',10);
+      const secs=m*60+s||60; stage=`Custom (${fmt(secs)})`;
+      const cc=document.getElementById('st-custom-controls');
+      if(cc){cc.style.display='none';cc.classList.add('hidden');}
+      this.reset(); total=secs; remaining=secs; draw();
+    },
+    toggleSound() {
+      sound=!sound;
+      const lbl=document.getElementById('st-sound-label');
+      const ico=document.getElementById('st-sound-icon');
+      if(lbl) lbl.textContent=sound?'Sound':'Muted';
+      if(ico) ico.innerHTML=sound?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>':'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
+    },
+    toggleVisibility() {
+      const body=document.getElementById('st-timer-body');
+      const button=document.getElementById('st-btn-visibility');
+      const label=document.getElementById('st-visibility-label');
+      if(!body||!button||!label) return;
+      const isVisible=!body.classList.toggle('hidden');
+      button.setAttribute('aria-expanded',String(isVisible));
+      body.setAttribute('aria-hidden',String(!isVisible));
+      label.textContent=isVisible?'Hide':'Show';
+    },
+    toggleFullscreen() {
+      const m=document.getElementById('scoresync-fullscreen-modal'); if(!m) return;
+      const hidden=m.classList.contains('hidden');
+      m.classList.toggle('hidden',!hidden);
+      m.style.display=hidden?'flex':'none';
+      draw();
+    },
+    logAndNext() {
+      const el=id=>document.getElementById(id);
+      const cval=(el('st-contestant-input')?.value||'').trim();
+      const entry={stage,contestant:cval,time:fmt(total-remaining),total:fmt(total),ts:new Date().toLocaleTimeString()};
+      logs.unshift(entry);
+      const cnt=el('st-log-count'); if(cnt) cnt.textContent=logs.length;
+      const emp=el('st-log-empty'); if(emp) emp.classList.add('hidden');
+      const box=el('st-log-container');
+      if(box){ const row=document.createElement('div'); row.className='flex items-center gap-3 px-3 py-2 rounded-lg text-xs'; row.style.cssText='background:rgba(255,255,255,0.04);border:1px solid var(--border-subtle)'; row.innerHTML=`<span class="font-mono font-bold" style="color:#6366f1">${entry.time}</span><span class="font-semibold" style="color:var(--text-primary)">${cval||'—'}</span><span style="color:var(--text-faint)">${stage}</span><span class="ml-auto font-mono text-[10px]" style="color:var(--text-faint)">${entry.ts}</span>`; box.insertBefore(row,box.firstChild); }
+      this.reset();
+      if(el('st-contestant-input')) el('st-contestant-input').value='';
+    },
+    copyLogs() { const txt=logs.map(l=>`[${l.ts}] ${l.contestant||'—'} | ${l.stage} | ${l.time} / ${l.total}`).join('\n'); navigator.clipboard.writeText(txt||'No logs').catch(()=>{}); },
+    clearLogs() {
+      logs=[]; const b=document.getElementById('st-log-count'); if(b) b.textContent='0';
+      const c=document.getElementById('st-log-container'); if(c){ c.innerHTML=''; const e=document.getElementById('st-log-empty'); if(e){e.classList.remove('hidden');c.appendChild(e);} }
+    },
+  };
+})();
+
+// Spacebar
+document.addEventListener('keydown',e=>{ if(e.code==='Space'&&e.target.tagName!=='INPUT'&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='SELECT'){e.preventDefault();window.ScoreSyncTimer?.togglePlay();} if(e.code==='Escape'){const m=document.getElementById('scoresync-fullscreen-modal');if(m&&!m.classList.contains('hidden'))window.ScoreSyncTimer?.toggleFullscreen();} });
+
+// Init
+document.addEventListener('DOMContentLoaded',()=>{ if(window.ScoreSyncTimer){ window.ScoreSyncTimer.reset(); } });
+</script>
